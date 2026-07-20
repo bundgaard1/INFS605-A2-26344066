@@ -1,0 +1,87 @@
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: #f5f5f5;
+}
+
+.portal-shell {
+	display: grid;
+	grid-template-columns: 160px minmax(0, 1fr);
+	grid-template-areas:
+		"header header"
+		"nav main";
+	min-height: 100vh;
+}
+
+.top-navbar {
+	grid-area: header;
+	display: flex;
+	justify-content: space-between;
+	padding: 12px;
+	background: #fff;
+	border-bottom: 1px solid #ddd;
+}
+
+.top-navbar h2 {
+	margin: 0;
+}
+
+.user-badge {
+	color: #666;
+}
+
+.side-navbar {
+	grid-area: nav;
+	align-self: start;
+	min-height: calc(100vh - 57px);
+	background: #fff;
+	padding: 16px 12px;
+	border-right: 1px solid #ddd;
+}
+
+.side-navbar ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.side-navbar a {
+	display: block;
+	padding: 10px 12px;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #222;
+}
+
+.side-navbar a:hover {
+	background: #f0f0f0;
+}
+
+.main-container {
+	grid-area: main;
+	padding: 12px;
+}
+
+.main-container section {
+	background: #fff;
+	border: 1px solid #ddd;
+	padding: 12px;
+}
+
+.main-container h1 {
+	margin: 0;
+	margin-bottom: 10px;
+}
+
+.main-container ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.main-container li {
+	padding: 8px;
+	border: 1px solid #e4e4e4;
+	margin-bottom: 8px;
+	background: #fafafa;
+}

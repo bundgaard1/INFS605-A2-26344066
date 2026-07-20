@@ -1,0 +1,14 @@
+{{ define "title" }}Courses Dashboard{{ end }}
+
+{{ define "content" }}
+<section>
+	<h1>Courses</h1>
+	<ul>
+		{{ range .Courses }}
+		<li>{{ .ID }} - {{ .Title }}</li>
+		{{ else }}
+		<li>You are not enrolled in any courses.</li>
+		{{ end }}
+	</ul>
+</section>
+{{ end }}

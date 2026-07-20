@@ -19,8 +19,9 @@ INFS605 - course project
 - Grades Service
 - Timetable Service
 - Assignment Tracker
--  Room Booking Service (for team meetings), 
-come more generic services such as – an Image Upload Service, a 
+- Room Booking Service (for team meetings), 
+
+More generic services such as – an Image Upload Service, a 
 - Search Service, 
 - a Logging or Audit Trail Service,
 - Frontend UI,
@@ -29,7 +30,7 @@ come more generic services such as – an Image Upload Service, a
 - API Gateway (Use Nginx or Traefik)
 
 ## Functional
-- Must expose a least 2 RESTful APIs with 2 endpoints
+- Must expose at least 2 RESTful APIs with 2 endpoints
 - HTTP, TCP(RPC, maybe gRPC) and simple message queue 
 - Small frontend for interaction
 - Authentication to one or more services
@@ -40,3 +41,12 @@ come more generic services such as – an Image Upload Service, a
 - Include documentation and usage instructions
 - System must support logging, basic error handing
 
+# Architecture
+- Microservices architecture with DockerCompose
+- Go-based services
+- Frontend in Go with HTML templates
+- RabbitMQ for message queue (Asynchronous event-driven task processing)
+- gRPC over HTTP/2 for high-speed, type-safe internal synchronous service communication
+- Protocol Buffer (.proto) shared schema registry acting as the system's single source of truth
+- Database-per-service isolation model ensuring zero binary or storage coupling between domains
+- Nginx or Traefik acting as an edge reverse proxy and central JWT authorization boundary

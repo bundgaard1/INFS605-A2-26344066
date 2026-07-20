@@ -1,0 +1,41 @@
+version: '3.8'
+
+networks:
+  osbourne-net:
+    driver: bridge
+
+    
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: osbourne-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - osbourne-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: osbourne-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - osbourne-net
+    restart: unless-stopped
+
