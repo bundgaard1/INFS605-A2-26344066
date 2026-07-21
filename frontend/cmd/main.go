@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"osbourne.local/frontend/gen/student"
 )
 
@@ -43,15 +47,38 @@ func handleDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	usersServiceAddr := os.Getenv("USERS_SERVICE_ADDR")
+	if usersServiceAddr == "" {
+		usersServiceAddr = "localhost:50051"
+	}
 
-	data := &student.StudentResponse{
-		Id:   "123",
-		Name: "Andy",
-		Role: "student",
-		Courses: []*student.Course{
-			{Id: "INFS-605", Title: "Microservices Programming Project"},
-			{Id: "COMP-901", Title: "Distributed Systems"},
+	conn, err := grpc.NewClient(usersServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		http.Error(w, "Kunne ikke oprette forbindelse til users-service", http.StatusBadGateway)
+		log.Printf("Kunne ikke oprette gRPC-forbindelse til %s: %v", usersServiceAddr, err)
+		return
+	}
+	defer conn.Close()
+
+	client := student.NewStudentServiceClient(conn)
+
+	// Kalder gRPC servicen
+	res, err := client.GetStudentProfile(context.Background(), &student.StudentRequest{
+		StudentId: "12345",
+	})
+	if err != nil {
+		http.Error(w, "Kunne ikke hente studentprofil", http.StatusBadGateway)
+		log.Printf("gRPC-kald GetStudentProfile fejlede mod %s: %v", usersServiceAddr, err)
+		return
+	}
+	log.Println("Navn modtaget fra gRPC:", res.GetName())
+
+	data := map[string]interface{}{
+		"User": map[string]string{
+			"Name": res.GetName(),
+			"Role": res.GetRole(),
 		},
+		"Courses": res.GetCourses(),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
