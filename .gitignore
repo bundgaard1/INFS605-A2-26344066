@@ -1,0 +1,73 @@
+# ==========================================
+# Go Binaries & Compiles
+# ==========================================
+# Eksplicitte binære filer produceret af go build
+/frontend/frontend
+/student-service/student-service
+*.exe
+*.exe?
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go vendor mappen (hvis du mod forventning bruger vendor)
+/vendor/
+
+# Air (Live reload) midlertidige filer
+/tmp/
+
+# ==========================================
+# Protobuf / Buf (Valgfrit)
+# ==========================================
+# Hvis du vil tvinge alle til at køre `make generate` lokalt,
+# kan du fjerne udkommenteringen af linjen herunder:
+**/gen/
+
+# Buf cache og lokal tilstand
+.buf/
+
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+# Følsomme oplysninger og lokale konfigurationer
+.env
+.env.local
+*.pem
+*.key
+
+# ==========================================
+# Operating System Files
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ==========================================
+# IDEs & Editors
+# ==========================================
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# GoLand / IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
