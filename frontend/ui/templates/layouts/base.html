@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ block "title" . }}Osborne.AI Portal{{ end }}</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="portal-shell">
@@ -16,15 +16,13 @@
 
         <nav class="side-navbar">
             <ul>
-                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/">Dashboard</a></li>
                 <li><a href="/profile">Profile</a></li>
                 <li><a href="/settings">Settings</a></li>
-                <li><a href="/logout">Logout</a></li>
             </ul>
         </nav>
 
         <div class="main-container">
-            <!-- Dynamic Main Content Area -->
             <main class="content-canvas">
                 {{ block "content" . }}Default Portal Content{{ end }}
             </main>

@@ -3,15 +3,13 @@
 # ==========================================
 FROM golang:1.26-alpine AS builder
 
-RUN apk add --no-cache ca-certificates git
+RUN apk add --no-cache ca-certificates git 
 
 WORKDIR /app
 
-# 1. Kopier kun modulfilerne for users-service for optimal Docker-caching
 COPY users-service/go.mod users-service/go.sum ./users-service/
 RUN cd users-service && go mod download
 
-# 2. Kopier hele monorepoet (giver adgang til users-service og eventuelle fælles filer)
 COPY . .
 
 # 3. Skift til users-service mappen og kompiler binærfilen
@@ -28,7 +26,8 @@ RUN apk --no-cache add ca-certificates && \
 
 WORKDIR /app
 
-# Kopier den kompilerede binære fil fra builder-staget
+RUN chown -R appuser:appgroup /app
+
 COPY --from=builder /users-service .
 
 USER appuser

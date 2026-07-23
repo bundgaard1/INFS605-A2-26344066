@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 	"os"
@@ -11,28 +10,13 @@ import (
 
 	"google.golang.org/grpc"
 	"osbourne.local/users-service/gen/student"
+	"osbourne.local/users-service/internal/database"
+	"osbourne.local/users-service/internal/repository"
+	"osbourne.local/users-service/internal/server"
+	"osbourne.local/users-service/internal/service"
 )
 
-type server struct {
-	student.UnimplementedStudentServiceServer
-}
-
-func (s *server) GetStudentProfile(ctx context.Context, req *student.StudentRequest) (*student.StudentResponse, error) {
-	log.Printf("Modtog forespørgsel for student_id: %s", req.GetStudentId())
-
-	return &student.StudentResponse{
-		Id:   req.GetStudentId(),
-		Name: "Andy Osborne",
-		Role: "Student",
-		Courses: []*student.Course{
-			{Id: "INFS-605", Title: "Microservices Programming Project"},
-			{Id: "COMP-901", Title: "Distributed Systems"},
-		},
-	}, nil
-}
-
 func main() {
-	// Dynamisk port med fallback
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "50051"
@@ -43,10 +27,20 @@ func main() {
 		log.Fatalf("Kunne ikke lytte på port :%s: %v", port, err)
 	}
 
-	grpcServer := grpc.NewServer()
-	student.RegisterStudentServiceServer(grpcServer, &server{})
+	db, err := database.NewGORMDB("./users.db")
+	if err != nil {
+		log.Fatalf("DB fejl: %v", err)
+	}
 
-	// 1. Kør serveren i en baggrunds-goroutine
+	database.SeedData(db)
+
+	studentRepo := repository.NewGORMStudentRepository(db)
+	studentSvc := service.NewStudentService(studentRepo)
+	studentGrpcServer := server.NewStudentServer(studentSvc)
+
+	grpcServer := grpc.NewServer()
+	student.RegisterStudentServiceServer(grpcServer, studentGrpcServer)
+
 	go func() {
 		log.Printf("Users-Service (gRPC) kører på port :%s...", port)
 		if err := grpcServer.Serve(lis); err != nil && err != grpc.ErrServerStopped {
@@ -54,22 +48,19 @@ func main() {
 		}
 	}()
 
-	// 2. Lyt efter nedluknings-signaler (Ctrl+C, Docker stop m.m.)
+	// 4. Graceful Shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-
-	// Blokér indtil signalet modtages
 	<-stop
-	log.Println("Modtog nedlukningssignal. Lukker gRPC server pænt...")
 
-	// 3. Graceful shutdown: Vent på at aktive gRPC-kald afsluttes
+	log.Println("Modtog nedlukningssignal. Lukker pænt...")
+
 	done := make(chan struct{})
 	go func() {
 		grpcServer.GracefulStop()
 		close(done)
 	}()
 
-	// Tving nedlukning hvis det tager mere end 5 sekunder
 	select {
 	case <-done:
 		log.Println("gRPC server lukket pænt.")

@@ -25,11 +25,12 @@ services:
       context: .
       dockerfile: ./users-service/Dockerfile
     container_name: osbourne-users-service
-    # Port-eksponering er fjernet herfra da frontend kommunikerer over osbourne-net.
-    # Tilføj ports: ["50051:50051"] hvis du vil kunne kalde den direkte fra din lokal PC.
     environment:
       - PORT=50051
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DB_PATH=/app/data/users.db
+    volumes: 
+      - ./users-service/data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy

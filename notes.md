@@ -14,9 +14,9 @@ INFS605 - course project
 ## Services (Ideas)
 - Student Profile Service
 - Course Catalogue Service
-- Feedback Service
+- Course Content Service
+- Assignment Submission/Grading Service
 - Notification Service
-- Grades Service
 - Timetable Service
 - Assignment Tracker
 - Room Booking Service (for team meetings), 
@@ -39,7 +39,7 @@ More generic services such as – an Image Upload Service, a
 - Each service in its own Docker container
 - Must be defined in a DockerCompose file
 - Include documentation and usage instructions
-- System must support logging, basic error handing
+- System must support logging, basic error handling
 
 # Architecture
 - Microservices architecture with DockerCompose
@@ -50,3 +50,6 @@ More generic services such as – an Image Upload Service, a
 - Protocol Buffer (.proto) shared schema registry acting as the system's single source of truth
 - Database-per-service isolation model ensuring zero binary or storage coupling between domains
 - Nginx or Traefik acting as an edge reverse proxy and central JWT authorization boundary
+
+## Extra requirements
+- Services can scale to multiple instances 
