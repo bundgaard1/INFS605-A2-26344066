@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"osbourne.local/users-service/internal/domain"
+	"osbourne.local/profile-service/internal/domain"
 )
 
 func NewGORMDB(dbPath string) (*gorm.DB, error) {
@@ -23,7 +23,7 @@ func NewGORMDB(dbPath string) (*gorm.DB, error) {
 	// Aktiver WAL via en direkte PRAGMA i stedet for query string
 	db.Exec("PRAGMA journal_mode=WAL;")
 
-	err = db.AutoMigrate(&domain.Student{}, &domain.Course{})
+	err = db.AutoMigrate(&domain.UserProfile{})
 	if err != nil {
 		return nil, fmt.Errorf("fejl ved AutoMigrate: %w", err)
 	}
@@ -33,19 +33,15 @@ func NewGORMDB(dbPath string) (*gorm.DB, error) {
 
 func SeedData(db *gorm.DB) {
 	var count int64
-	db.Model(&domain.Student{}).Count(&count)
+	db.Model(&domain.UserProfile{}).Count(&count)
 	if count > 0 {
 		return // Data findes allerede
 	}
 
-	student := domain.Student{
+	student := domain.UserProfile{
 		ID:   "12345",
 		Name: "Andy Osborne",
 		Role: "Student",
-		Courses: []domain.Course{
-			{ID: "INFS-605", Title: "Microservices Programming Project"},
-			{ID: "COMP-901", Title: "Distributed Systems"},
-		},
 	}
 
 	db.Create(&student)

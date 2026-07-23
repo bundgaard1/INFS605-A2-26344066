@@ -7,14 +7,14 @@ RUN apk add --no-cache ca-certificates git
 
 WORKDIR /app
 
-COPY users-service/go.mod users-service/go.sum ./users-service/
-RUN cd users-service && go mod download
+COPY profile-service/go.mod profile-service/go.sum ./profile-service/
+RUN cd profile-service && go mod download
 
 COPY . .
 
-# 3. Skift til users-service mappen og kompiler binærfilen
-WORKDIR /app/users-service
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /users-service ./cmd/main.go
+# 3. Skift til profile-service mappen og kompiler binærfilen
+WORKDIR /app/profile-service
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /profile-service ./cmd/main.go
 
 # ==========================================
 # STAGE 2: Minimal Runtime phase
@@ -28,10 +28,10 @@ WORKDIR /app
 
 RUN chown -R appuser:appgroup /app
 
-COPY --from=builder /users-service .
+COPY --from=builder /profile-service .
 
 USER appuser
 
 EXPOSE 50051
 
-ENTRYPOINT ["./users-service"]
+ENTRYPOINT ["./profile-service"]

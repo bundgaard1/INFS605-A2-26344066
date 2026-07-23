@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package user.profile;
+
+option go_package = "osbourne.local/profile-service/gen/profile;profile";
+
+service ProfileService {
+  rpc GetUserProfile (ProfileRequest) returns (ProfileResponse);
+}
+
+message ProfileRequest {
+  string user_id = 1;
+}
+
+
+message ProfileResponse {
+  string id = 1;
+  string name = 2;
+  string role = 3;
+}

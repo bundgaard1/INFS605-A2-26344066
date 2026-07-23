@@ -1,177 +1,169 @@
-Here is the complete, actionable rollout plan for your **INFS605 project**, translated into English and structured around a **vertical slice strategy** (building one end-to-end feature at a time to avoid the "empty microservices" trap).
+Her er den opdaterede og tilpassede udrulningsplan for din **INFS605 platform**, udvidet til at omfatte alle **6 mikrotjenester** og deres specifikke databaseteknologier (SQL vs. NoSQL), som vi har defineret.
+
+Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdiggør hele værdikæden for én funktion ad gangen (Frontend $\rightarrow$ Gateway $\rightarrow$ Service $\rightarrow$ DB/RabbitMQ), før vi bygger videre.
 
 ---
 
-## Target Architecture & Service Selection
+## Mål-Arkitektur & Tjenester
 
-To meet your requirements (minimum 3 services + infrastructure), we will build these 3 core domains:
-
-1. **Student Profile Service** (Synchronous gRPC, SQL database)
-2. **Notification Service** (Asynchronous via RabbitMQ, NoSQL/In-memory storage)
-3. **Course Catalogue Service** (Synchronous gRPC or REST)
----
-
-## [ ] Phase 1: Foundation & First "Vertical Slice"
-
-**Goal:** Make a button on your frontend successfully retrieve a student profile all the way through the stack (*Frontend $\rightarrow$ API Gateway $\rightarrow$ Service $\rightarrow$ DB*).
-
-### [x] Step 1.1: Shared Schemas & Contracts 
-
-* **Action:** Create a central directory (`/proto`) for your Protobuf definitions.
-* **Implementation:** Define `student.proto` containing your `GetStudentProfile(StudentRequest) returns (StudentResponse)` method.
-* **Testing:** Generate Go code locally using `protoc` and verify no compilation errors occur.
-
-### [ ] Step 1.2: Student Profile Service & Database
-
-* **Action:** Build the **Student Profile Service** in Go with a PostgreSQL or SQLite database.
-* **Implementation:** Expose one gRPC endpoint (`GetStudent` / `CreateStudent`).
-* **Testing:**
-* Write unit tests (`*_test.go`) for your database access layer.
-* Use **grpcurl** or Postman to invoke your gRPC service directly on port `50051`.
-
-### [ ] Step 1.3: Docker Compose & API Gateway
-
-* **Action:** Create your `docker-compose.yml` including the **Student Service**, **Postgres**, and **Nginx/Traefik**.
-* **Implementation:** Configure Nginx/Traefik as an API Gateway to route incoming REST calls (`/api/v1/students`) to the internal gRPC Student Service.
-* **Testing:** Run `docker compose up --build`. Send an HTTP GET request via cURL or Postman to the Gateway, confirming you receive the student JSON payload back.
-
-### [ ] Step 1.4: Minimal Frontend (Go + HTML Templates)
-
-* **Action:** Build a simple Go web server for the UI.
-* **Implementation:** Create a page (`/student?id=1`) that fetches data from the API Gateway and renders it in an HTML template.
-* **Testing:** Open your browser. If you can see student profile data on the screen, **your first vertical slice is complete.**
+1. **Authentication Service** (gRPC, SQL DB – Identitet & Tokens)
+2. **Student Profile Service** (gRPC, SQL DB – Brugerstamdata)
+3. **Course Catalogue Service** (gRPC, SQL DB – Kurser, Fag & Tilmeldinger/Enrollments)
+4. **Course Content Service** (gRPC, **NoSQL/MongoDB** – Dynamiske lektionsblokke)
+5. **Assignment/Grading Service** (gRPC, SQL DB – Afleveringer & Karakterer)
+6. **Notification Service** (RabbitMQ Consumer + gRPC, **NoSQL/In-App DB** – In-App Notifikationer)
 
 ---
 
-## [ ] Phase 2: Asynchronous Messaging & Service #2
+## [ ] Phase 1: Foundation & First "Vertical Slice" (Student Profile)
 
-**Goal:** Automatically trigger an asynchronous notification whenever a student profile is updated.
+**Mål:** En knap i din frontend henter en studerendes profil hele vejen igennem stakken (*Frontend $\rightarrow$ API Gateway $\rightarrow$ Profile Service $\rightarrow$ SQLite DB*).
+
+### [x] Step 1.1: Shared Schemas & Contracts (gRPC)
+
+* **Handling:** Opret mappen `/proto` med `.proto` kontrakter.
+* **Implementering:** Definer `student.proto` med `GetProfile` og `CreateStudent`.
+* **Test:** Generer Go-kode med `protoc` uden kompileringsfejl.
+
+### [x] Step 1.2: Student Profile Service & Database (GORM + SQLite)
+
+* **Handling:** Byg **Student Profile Service** i Go.
+* **Implementering:** Implementer GORM repository og in-memory unit tests (`*_test.go`).
+* **Test:** Kør `go test ./...` og verificer gRPC-kald direkte på port `50051`.
+
+### [ ] Step 1.3: API Gateway & Docker Compose Integration
+
+* **Handling:** Tilføj Nginx/Traefik som API Gateway foran `profile-service`.
+* **Implementering:** Rute indkommende HTTP REST-kald (`/api/v1/students`) videre til den interne gRPC profile-service.
+* **Test:** Kør `docker compose up --build`. Send et HTTP GET/POST-kald via cURL/Postman til Gateway og modtag JSON-svar.
+
+### [ ] Step 1.4: Minimal Frontend Integration
+
+* **Handling:** Opret en simpel Go-baseret webfrontend (BFF / HTML templates).
+* **Implementering:** Opret siden `/profile?id=xxx`, der henter data fra Gateway.
+* **Test:** Åbn browseren. Hvis du kan se profiloplysningerne på skærmen, er første vertical slice komplet.
+
+---
+
+## [ ] Phase 2: Asynchronous Messaging & In-App Notifications (Service #2)
+
+**Mål:** Når en karakter gives eller en student oprettes, oprettes der automatisk en in-app notifikation via RabbitMQ.
 
 ### [ ] Step 2.1: RabbitMQ Infrastructure
 
-* **Action:** Add `rabbitmq:3-management` to your `docker-compose.yml`.
-* **Testing:** Spin up containers, navigate to `http://localhost:15672` (RabbitMQ Management Dashboard), and verify the broker is running.
+* **Handling:** Tilføj `rabbitmq:3-management` til `docker-compose.yml`.
+* **Test:** Tilgå `http://localhost:15672` og bekræft, at brokeren kører.
 
-### [ ] Step 2.2: Notification Service (Service #2)
+### [ ] Step 2.2: Notification Service (Service #2 - NoSQL / In-App Feed)
 
-* **Action:** Create a Go service that has no direct REST/gRPC endpoints—it only consumes messages from a RabbitMQ queue (`student_events`).
-* **Implementation:** When a message (e.g., `StudentUpdated`) lands in the queue, the Notification Service logs the event or saves it to its own isolated store (e.g., Redis or MongoDB).
-* **Testing:** Write a small Go test script to publish a test message directly to RabbitMQ, verifying the Notification Service consumes and logs it.
+* **Handling:** Opret `notification-service` med en NoSQL/In-App DB (MongoDB/SQLite) til notifikationshistorik.
+* **Implementering:**
+1. Opret en RabbitMQ consumer, der lytter på events (f.eks. `grade.published`, `student.created`).
+2. Tilføj en gRPC-endpoint (`GetUserNotifications`, `MarkAsRead`), så frontenden kan vise ulæste notifikationer ved login.
 
-### [ ] Step 2.3: Connect Student Service to RabbitMQ
 
-* **Action:** Extend the **Student Profile Service** to publish an event to RabbitMQ whenever a student is created or updated.
-* **Testing (Integration Test):**
-1. Send a `POST /api/v1/students` request from your UI or Postman.
-2. Inspect **Student DB** (data is saved).
-3. Inspect **RabbitMQ UI** (message was published and acknowledged).
-4. Inspect **Notification Service Logs** (`docker logs notification-service`) to verify execution.
+* **Test:** Send en test-event til RabbitMQ og verificer via gRPC, at notifikationen kan hentes frem.
+
+### [ ] Step 2.3: Event Publishing fra Services
+
+* **Handling:** Udvid services til at udgive events på RabbitMQ ved ændringer.
+* **Integrationstest:**
+1. Udfør en handling i systemet (f.eks. opret student).
+2. Tjek **RabbitMQ UI** (beskeden blev sendt).
+3. Tjek **Notification Service Logs & DB** (notifikationen er gemt og klar til at blive vist ved login).
+
+
 
 ---
 
-## [ ] Phase 3: Service #3 & Security
+## [ ] Phase 3: Core Domain Expansion (Services #3, #4, #5 & #6)
 
-**Goal:** Add your 3rd service and implement JWT Authentication at the Gateway boundary.
+**Mål:** Tilføj resten af universitetets domæneservices og introducer NoSQL til kursusindhold.
 
-### [ ] Step 3.1: Course Catalogue Service (Service #3)
+### [ ] Step 3.1: Course Catalogue Service (Service #3 - SQL)
 
-* **Action:** Build a Go service with its own isolated database (e.g., course list, room locations).
-* **Implementation:** Expose a REST or gRPC API to read and list course data.
-* **Testing:** Run integration tests to verify database isolation (confirming zero direct database calls to the Student DB).
+* **Handling:** Byg `catalogue-service` med ansvar for fagkataloget og **Enrollments** (M2M relation mellem `student_id` og `course_id`).
+* **Implementering:** Eksponer gRPC endpoints: `GetCourse`, `ListCourses`, `EnrollStudent`.
+* **Test:** Verificer, at tilmeldinger gemmes korrekt uden direkte databaselink til Profile DB.
 
-### [ ] Step 3.2: Centralized JWT Authentication at the Gateway
+### [ ] Step 3.2: Course Content Service (Service #4 - NoSQL / MongoDB)
 
-* **Action:** Configure Nginx/Traefik (or a small auth endpoint inside the Student Service) to issue and validate JWT tokens.
-* **Implementation:** Protect sensitive routes (e.g., `POST /api/v1/courses`) at the Gateway level so they require an `Authorization: Bearer <token>` header.
-* **Testing:**
-* Call `POST /api/v1/courses` without a token $\rightarrow$ Expect `401 Unauthorized`.
-* Generate a token via your auth route, re-send the request $\rightarrow$ Expect `200 OK`.
+* **Handling:** Byg `content-service` med **MongoDB** til opbevaring af fleksible lektionsblokke (tekst, video-links, PDF'er).
+* **Implementering:** Gem hele moduler og deres indholdsblokke som dokumenter i MongoDB.
+* **Test:** Hent et modul ud på ét enkelt databaseopslag og verificer, at dokument-strukturen returneres korrekt via gRPC.
+
+### [ ] Step 3.3: Assignment & Grading Service (Service #5 - SQL)
+
+* **Handling:** Byg `grading-service` til håndtering af opgaveafleveringer, deadlines og karakterer.
+* **Implementering:** Når en karakter gemmes via `GradeSubmission`, publiceres en `grade.published` event til RabbitMQ.
+* **Test:** Giv en karakter $\rightarrow$ Verificer at `notification-service` modtager eventen og opretter en in-app notifikation.
+
+### [ ] Step 3.4: Authentication Service (Service #6 - Security Boundary)
+
+* **Handling:** Byg `auth-service` med ansvar for `UserAccount` (Email, PasswordHash) og JWT-udstedelse.
+* **Implementering:**
+1. Konfigurer Gateway/BFF til at kræve `Authorization: Bearer <JWT>` på beskyttede ruter.
+2. Sørg for, at `user_id` fra JWT videreføres i gRPC Metadata til de underliggende services.
+
+
+* **Test:** Test adgang uden token ($\rightarrow 401$) vs. med gyldigt JWT ($\rightarrow 200$).
 
 ---
 
 ## [ ] Phase 4: Observability, Documentation & Final Check
 
-**Goal:** Satisfy all course rubric non-functional requirements and finalize your submission.
+**Mål:** Opfylod alle ikke-funktionelle krav i fagets bedømmelseskriterier.
 
 ### [ ] Step 4.1: Centralized Logging & Error Handling
 
-* **Action:** Ensure all Go services use structured logging (e.g., Go's native `slog` or `zap`) and print logs to `stdout`/`stderr`.
-* **Testing:** Run `docker compose logs -f` and confirm you can track requests flowing through the system across containers.
+* **Handling:** Sørg for at alle 6 Go-services bruger struktureret logging (`slog` eller `zap`) til `stdout`/`stderr`.
+* **Test:** Kør `docker compose logs -f` og følg en anmodnings vej gennem Gateway og services.
 
 ### [ ] Step 4.2: Documentation
 
-* **Action:** Create a clean `README.md` containing:
-1. **Architecture Diagram:** A simple visual or Mermaid.js diagram illustrating service communication.
-2. **Run Instructions:** A single command to start the entire environment: `docker compose up --build`.
-3. **API Specs:** A cURL collection or an `api.http` file (VS Code REST Client format) for easy testing of your endpoints.
+* **Handling:** Opret en grundig `README.md` med:
+1. **Arkitekturdiagram:** Visualisering af de 6 services, RabbitMQ, Gateway, SQL og NoSQL databaser.
+2. **Run Instructions:** `docker compose up --build`.
+3. **API Collection:** En `.http` fil eller Postman collection til test af alle væsentlige flow.
 
 
-## [ ] Phase 5: High Availability & Instance Scaling
- 
-**Goal:** Demonstrate horizontal scalability by running multiple instances of your Go services behind Docker load balancers, ensuring statelessness, competing consumer queues, and zero-downtime routing.
 
 ---
+
+## [ ] Phase 5: High Availability & Instance Scaling
+
+**Mål:** Demonstrer horisontal skalering og belastningsfordeling på tværs af servicerne.
 
 ### [ ] Step 5.1: Multi-Instance Docker Compose Configuration
 
-* **Action:** Update your local workflow to launch multiple container replicas without modifying hardcoded port bindings.
-* **Implementation:** Ensure no individual microservice container binds directly to a host port (e.g., remove `ports: - "50051:50051"` from internal services in `docker-compose.yml` and let Nginx handle ingress).
-* **Execution Command:**
+* **Handling:** Fjern specifikke port-bindings på interne mikrotjeneste-containere i `docker-compose.yml`.
+* **Eksekvering:**
 ```bash
-docker compose up -d --scale student-service=3 --scale notification-service=2
+docker compose up -d --scale profile-service=3 --scale notification-service=2
 
 ```
-* **Testing:** Run `docker compose ps` to verify that 3 `student-service` containers and 2 `notification-service` containers are actively running on the shared container network.
 
----
+
+* **Test:** Kør `docker compose ps` og bekræft, at alle instanser kører på det fælles Docker-netværk.
 
 ### [ ] Step 5.2: Gateway Round-Robin Load Balancing
 
-* **Action:** Configure Nginx as an upstream load balancer for HTTP REST and gRPC endpoints across all `student-service` instances.
-* **Implementation:** Define an `upstream` block in your Nginx configuration pointing to the service's internal Docker DNS name:
-```nginx
-upstream student_grpc_backend {
-    # Docker DNS automatically resolves 'student-service' to all active container IPs
-    server student-service:50051;
-}
-
-server {
-    listen 80;
-    location /api/v1/students {
-        grpc_pass grpc://student_grpc_backend;
-    }
-}
-
-```
-
-
-* **Testing:**
-1. Add container identity logging inside Go using `os.Hostname()`.
-2. Send 6 consecutive REST/gRPC requests through the Gateway.
-3. Inspect the response headers or logs to confirm that requests are distributed across all 3 unique container IDs.
-
----
+* **Handling:** Konfigurer Nginx som load balancer for gRPC og REST backends.
+* **Test:** Log `os.Hostname()` i Go-servicerne, send 6 opkald igennem Gatewayen, og verificer i loggen, at forespørgslerne fordeles ligeligt på tværs af container-ID'erne.
 
 ### [ ] Step 5.3: Asynchronous Competing Consumers (RabbitMQ)
 
-* **Action:** Verify that multiple instances of `notification-service` process messages asynchronously without duplicate executions or race conditions.
-* **Implementation:** Ensure all scaled instances of `notification-service` bind to the **same RabbitMQ queue name**. RabbitMQ will automatically distribute incoming messages round-robin to a single active worker.
-* **Testing:**
-1. Trigger 10 student update events in rapid succession.
-2. Open the RabbitMQ Management Dashboard (`http://localhost:15672`) and inspect queue consumers.
-3. Inspect container logs via `docker compose logs notification-service` to confirm that each notification event was processed **exactly once** by one of the two running instances.
-
----
+* **Handling:** Sørg for, at alle skalerede instanser af `notification-service` lytter på den **samme RabbitMQ-kø**.
+* **Test:** Send 10 karakter-events hurtigt efter hinanden. Bekræft i logs og i RabbitMQ Dashboard, at hver event kun behandles **én gang** af én af instanserne (round-robin).
 
 ### [ ] Step 5.4: Database Connection Pooling & Statelessness Audit
 
-* **Action:** Ensure scaled instances do not exhaust database connection limits or rely on local instance memory.
-* **Implementation:**
-* Explicitly cap connection pool limits in your Go SQL driver (`db.SetMaxOpenConns(10)`).
-* Ensure all auth validation relies entirely on stateless **JWT signature verification** rather than in-memory session stores.
+* **Handling:**
+* Begræns database-forbindelser i Go drivers (`db.SetMaxOpenConns(10)`).
+* Sikr at alle services validerer adgang via tilstandsløse (stateless) JWT-signaturer.
 
 
-* **Testing:** Run a stress/load test using `ab` (ApacheBench) or `hey` against the Gateway:
+* **Test:** Kør en stresstest med `hey` eller `ab`:
 ```bash
 hey -n 200 -c 20 http://localhost/api/v1/courses
 

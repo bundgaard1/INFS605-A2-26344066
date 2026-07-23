@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	"osbourne.local/users-service/gen/student"
-	"osbourne.local/users-service/internal/database"
-	"osbourne.local/users-service/internal/repository"
-	"osbourne.local/users-service/internal/server"
-	"osbourne.local/users-service/internal/service"
+	"osbourne.local/profile-service/gen/profile"
+	"osbourne.local/profile-service/internal/database"
+	"osbourne.local/profile-service/internal/repository"
+	"osbourne.local/profile-service/internal/server"
+	"osbourne.local/profile-service/internal/service"
 )
 
 func main() {
@@ -34,15 +34,15 @@ func main() {
 
 	database.SeedData(db)
 
-	studentRepo := repository.NewGORMStudentRepository(db)
-	studentSvc := service.NewStudentService(studentRepo)
-	studentGrpcServer := server.NewStudentServer(studentSvc)
+	profileRepo := repository.NewGORMProfileRepository(db)
+	profileSvc := service.NewProfileService(profileRepo)
+	profileGrpcServer := server.NewProfileServer(profileSvc)
 
 	grpcServer := grpc.NewServer()
-	student.RegisterStudentServiceServer(grpcServer, studentGrpcServer)
+	profile.RegisterProfileServiceServer(grpcServer, profileGrpcServer)
 
 	go func() {
-		log.Printf("Users-Service (gRPC) kører på port :%s...", port)
+		log.Printf("profile-service (gRPC) kører på port :%s...", port)
 		if err := grpcServer.Serve(lis); err != nil && err != grpc.ErrServerStopped {
 			log.Fatalf("Fejl under afvikling af gRPC server: %v", err)
 		}

@@ -23,7 +23,7 @@ func main() {
 		log.Fatalf("Fejl ved parsing af templates: %v", err)
 	}
 
-	usersServiceAddr := "dns:///users-service:50051"
+	usersServiceAddr := "dns:///profile-service:50051"
 	studentClient, err := grpcclient.NewStudentClient(usersServiceAddr)
 	if err != nil {
 		log.Fatalf("Fejl ved oprettelse af gRPC-klient: %v", err)

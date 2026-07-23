@@ -15,19 +15,14 @@ INFS605 - course project
 - Student Profile Service
 - Course Catalogue Service
 - Course Content Service
-- Assignment Submission/Grading Service
+- Assignment/Grading Service
 - Notification Service
-- Timetable Service
-- Assignment Tracker
-- Room Booking Service (for team meetings), 
+- Authentication Service
 
-More generic services such as – an Image Upload Service, a 
-- Search Service, 
-- a Logging or Audit Trail Service,
-- Frontend UI,
-- PDF Generator, 
-- System Metrics Service. 
-- API Gateway (Use Nginx or Traefik)
++ Frontend UI,
++ API Gateway (Use Nginx or Traefik)
+
++ Monitoring and Logging (Prometheus, Grafana, ELK stack)
 
 ## Functional
 - Must expose at least 2 RESTful APIs with 2 endpoints

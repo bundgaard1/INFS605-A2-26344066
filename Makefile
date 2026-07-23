@@ -12,3 +12,6 @@ generate: tools
 dev: generate
 	@cd frontend && go run cmd/main.go
 
+clean:
+	@echo "Rydder op i genererede filer..."
+	@rm -rf **/gen
