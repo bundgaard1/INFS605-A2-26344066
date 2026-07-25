@@ -31,7 +31,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 * **Implementering:** Implementer GORM repository og in-memory unit tests (`*_test.go`).
 * **Test:** Kør `go test ./...` og verificer gRPC-kald direkte på port `50051`.
 
-### [ ] Step 1.3: API Gateway & Docker Compose Integration
+### [x] Step 1.3: API Gateway & Docker Compose Integration
 
 * **Handling:** Tilføj Nginx/Traefik som API Gateway foran `profile-service`.
 * **Implementering:** Rute indkommende HTTP REST-kald (`/api/v1/students`) videre til den interne gRPC profile-service.

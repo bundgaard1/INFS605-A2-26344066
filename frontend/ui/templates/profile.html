@@ -1,0 +1,11 @@
+{{ define "title" }}Profile{{ end }}
+
+{{ define "content" }}
+<section>
+	Welcome to your profile page.
+
+    <p>ID: {{ .Data.Id }}</p>
+    <p>Name: {{ .Data.Name }}</p>
+    <p>Role: {{ .Data.Role }}</p>
+</section>
+{{ end }}
