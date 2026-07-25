@@ -15,7 +15,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 
 ---
 
-## [ ] Phase 1: Foundation & First "Vertical Slice" (Student Profile)
+## [x] Phase 1: Foundation & First "Vertical Slice" (Student Profile)
 
 **Mål:** En knap i din frontend henter en studerendes profil hele vejen igennem stakken (*Frontend $\rightarrow$ API Gateway $\rightarrow$ Profile Service $\rightarrow$ SQLite DB*).
 
@@ -37,7 +37,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 * **Implementering:** Rute indkommende HTTP REST-kald (`/api/v1/students`) videre til den interne gRPC profile-service.
 * **Test:** Kør `docker compose up --build`. Send et HTTP GET/POST-kald via cURL/Postman til Gateway og modtag JSON-svar.
 
-### [ ] Step 1.4: Minimal Frontend Integration
+### [x] Step 1.4: Minimal Frontend Integration
 
 * **Handling:** Opret en simpel Go-baseret webfrontend (BFF / HTML templates).
 * **Implementering:** Opret siden `/profile?id=xxx`, der henter data fra Gateway.
@@ -49,7 +49,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 
 **Mål:** Når en karakter gives eller en student oprettes, oprettes der automatisk en in-app notifikation via RabbitMQ.
 
-### [ ] Step 2.1: RabbitMQ Infrastructure
+### [x] Step 2.1: RabbitMQ Infrastructure
 
 * **Handling:** Tilføj `rabbitmq:3-management` til `docker-compose.yml`.
 * **Test:** Tilgå `http://localhost:15672` og bekræft, at brokeren kører.
@@ -60,7 +60,6 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 * **Implementering:**
 1. Opret en RabbitMQ consumer, der lytter på events (f.eks. `grade.published`, `student.created`).
 2. Tilføj en gRPC-endpoint (`GetUserNotifications`, `MarkAsRead`), så frontenden kan vise ulæste notifikationer ved login.
-
 
 * **Test:** Send en test-event til RabbitMQ og verificer via gRPC, at notifikationen kan hentes frem.
 

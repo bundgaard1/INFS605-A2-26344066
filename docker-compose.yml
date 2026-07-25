@@ -37,9 +37,25 @@ services:
     environment:
       - PORT=50051
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
-      - DB_PATH=/app/data/profiles.db
     volumes: 
       - ./profile-service/data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - osbourne-net
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./notification-service/Dockerfile
+    container_name: osbourne-notification-service
+    environment:
+      - PORT=50052
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    volumes: 
+      - ./notification-service/data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
