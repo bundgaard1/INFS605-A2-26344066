@@ -4,15 +4,16 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
-	"osbourne.local/frontend/gen/student"
+	"osbourne.local/frontend/gen/profile"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/ui"
 )
 
 type App struct {
 	tmpl          *template.Template
-	studentClient *grpcclient.StudentClient
+	profileClient *grpcclient.ProfileClient
 }
 
 func main() {
@@ -23,16 +24,16 @@ func main() {
 		log.Fatalf("Fejl ved parsing af templates: %v", err)
 	}
 
-	usersServiceAddr := "dns:///profile-service:50051"
-	studentClient, err := grpcclient.NewStudentClient(usersServiceAddr)
+	profileServiceAddr := "dns:///profile-service:50051"
+	profileClient, err := grpcclient.NewProfileClient(profileServiceAddr)
 	if err != nil {
 		log.Fatalf("Fejl ved oprettelse af gRPC-klient: %v", err)
 	}
-	defer studentClient.Close()
+	defer profileClient.Close()
 
 	app := &App{
 		tmpl:          tmpl,
-		studentClient: studentClient,
+		profileClient: profileClient,
 	}
 
 	mux := http.NewServeMux()
@@ -40,8 +41,13 @@ func main() {
 
 	mux.HandleFunc("/", app.handleDashboard)
 
-	log.Println("Go HTML Template Web Service running on port :8080...")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Println("Go HTML Template Web Service running on port :" + port)
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -52,15 +58,15 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := app.studentClient.Client.GetStudentProfile(
+	res, err := app.profileClient.Client.GetUserProfile(
 		r.Context(),
-		&student.StudentRequest{
-			StudentId: "12345",
+		&profile.ProfileRequest{
+			UserId: "12345",
 		},
 	)
 	if err != nil {
-		http.Error(w, "Kunne ikke hente studentprofil", http.StatusBadGateway)
-		log.Printf("gRPC-kald GetStudentProfile fejlede: %v", err)
+		http.Error(w, "Kunne ikke hente profil", http.StatusBadGateway)
+		log.Printf("gRPC-kald GetUserProfile fejlede: %v", err)
 		return
 	}
 
@@ -69,7 +75,6 @@ func (app *App) handleDashboard(w http.ResponseWriter, r *http.Request) {
 			"Name": res.GetName(),
 			"Role": res.GetRole(),
 		},
-		"Courses": res.GetCourses(),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

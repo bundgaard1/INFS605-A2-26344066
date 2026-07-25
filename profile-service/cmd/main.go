@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("Kunne ikke lytte på port :%s: %v", port, err)
 	}
 
-	db, err := database.NewGORMDB("./users.db")
+	db, err := database.NewGORMDB("./profiles.db")
 	if err != nil {
 		log.Fatalf("DB fejl: %v", err)
 	}

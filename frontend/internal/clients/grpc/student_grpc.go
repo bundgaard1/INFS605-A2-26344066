@@ -3,26 +3,26 @@ package grpcclient
 import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"osbourne.local/frontend/gen/student"
+	"osbourne.local/frontend/gen/profile"
 )
 
-type StudentClient struct {
+type ProfileClient struct {
 	conn   *grpc.ClientConn
-	Client student.StudentServiceClient
+	Client profile.ProfileServiceClient
 }
 
-func NewStudentClient(addr string) (*StudentClient, error) {
+func NewProfileClient(addr string) (*ProfileClient, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
 
-	return &StudentClient{
+	return &ProfileClient{
 		conn:   conn,
-		Client: student.NewStudentServiceClient(conn),
+		Client: profile.NewProfileServiceClient(conn),
 	}, nil
 }
 
-func (c *StudentClient) Close() {
+func (c *ProfileClient) Close() {
 	_ = c.conn.Close()
 }

@@ -19,7 +19,7 @@ func NewProfileServer(profileSvc *service.ProfileService) *ProfileServer {
 	}
 }
 
-func (s *ProfileServer) GetProfile(ctx context.Context, req *profile.ProfileRequest) (*profile.ProfileResponse, error) {
+func (s *ProfileServer) GetUserProfile(ctx context.Context, req *profile.ProfileRequest) (*profile.ProfileResponse, error) {
 	log.Printf("Modtog gRPC-forespørgsel for profile_id: %s", req.GetUserId())
 
 	return s.profileSvc.GetProfile(ctx, req.GetUserId())

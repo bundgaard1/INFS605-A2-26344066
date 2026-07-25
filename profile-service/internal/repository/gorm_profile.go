@@ -22,7 +22,6 @@ func (r *GORMProfileRepository) GetByID(ctx context.Context, id string) (*profil
 	var profileEntity domain.UserProfile
 
 	err := r.db.WithContext(ctx).
-		Preload("Courses").
 		First(&profileEntity, "id = ?", id).Error
 
 	if err != nil {
