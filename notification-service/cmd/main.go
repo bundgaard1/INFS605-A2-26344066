@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
@@ -8,8 +9,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/wagslane/go-rabbitmq"
 	"google.golang.org/grpc"
 	"osbourne.local/notification-service/gen/notification"
+	"osbourne.local/notification-service/internal/consumer"
 	"osbourne.local/notification-service/internal/database"
 	"osbourne.local/notification-service/internal/repository"
 	"osbourne.local/notification-service/internal/server"
@@ -38,6 +41,33 @@ func main() {
 	notificationSvc := service.NewNotificationService(notificationRepo)
 	notificationGrpcServer := server.NewNotificationServer(notificationSvc)
 
+	// Opret RabbitMQ forbindelse
+	amqpURL := os.Getenv("RABBITMQ_URL")
+	if amqpURL == "" {
+		amqpURL = "amqp://guest:guest@rabbitmq:5672/"
+	}
+	conn, err := rabbitmq.NewConn(amqpURL)
+	if err != nil {
+		log.Fatalf("Fejl under oprettelse af RabbitMQ forbindelse: %v", err)
+	}
+	defer conn.Close()
+
+	rmqConsumer, err := consumer.NewNotificationConsumer(conn, notificationSvc)
+	if err != nil {
+		log.Fatalf("Fejl under oprettelse af RabbitMQ Consumer: %v", err)
+	}
+	defer rmqConsumer.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		log.Println("Starter RabbitMQ Consumer worker...")
+		if err := rmqConsumer.Start(ctx); err != nil {
+			log.Printf("RabbitMQ Consumer stoppede med fejl: %v", err)
+		}
+	}()
+
+	// Start gRPC server
 	grpcServer := grpc.NewServer()
 	notification.RegisterNotificationServiceServer(
 		grpcServer,

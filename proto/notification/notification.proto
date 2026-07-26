@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package notification;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "osbourne.local/notification-service/gen/notification;notification";
 
 service NotificationService {
@@ -33,5 +35,5 @@ message Notification {
   string msg = 4;
   string link = 5;
   bool isRead = 6;
-  int64 timestamp = 7;
+  google.protobuf.Timestamp timestamp = 7;
 }

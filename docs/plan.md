@@ -54,12 +54,13 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 * **Handling:** Tilføj `rabbitmq:3-management` til `docker-compose.yml`.
 * **Test:** Tilgå `http://localhost:15672` og bekræft, at brokeren kører.
 
-### [ ] Step 2.2: Notification Service (Service #2 - NoSQL / In-App Feed)
+### [x] Step 2.2: Notification Service (Service #2 - NoSQL / In-App Feed)
 
 * **Handling:** Opret `notification-service` med en NoSQL/In-App DB (MongoDB/SQLite) til notifikationshistorik.
 * **Implementering:**
 1. Opret en RabbitMQ consumer, der lytter på events (f.eks. `grade.published`, `student.created`).
 2. Tilføj en gRPC-endpoint (`GetUserNotifications`, `MarkAsRead`), så frontenden kan vise ulæste notifikationer ved login.
+3. Vis Notifikationer i frontend via `/notifications` side.
 
 * **Test:** Send en test-event til RabbitMQ og verificer via gRPC, at notifikationen kan hentes frem.
 
@@ -70,8 +71,6 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 1. Udfør en handling i systemet (f.eks. opret student).
 2. Tjek **RabbitMQ UI** (beskeden blev sendt).
 3. Tjek **Notification Service Logs & DB** (notifikationen er gemt og klar til at blive vist ved login).
-
-
 
 ---
 

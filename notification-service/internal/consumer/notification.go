@@ -20,10 +20,13 @@ func NewNotificationConsumer(conn *rabbitmq.Conn, svc *service.NotificationServi
 		svc: svc,
 	}
 
-	// 1. Opret RabbitMQ Consumer direkte med biblioteket
 	consumer, err := rabbitmq.NewConsumer(
 		conn,
-		"notifications_queue",
+		"notification_service_queue", // Navn på køen
+		rabbitmq.WithConsumerOptionsExchangeName("university.events"), // Opretter/sikrer Exchange
+		rabbitmq.WithConsumerOptionsExchangeKind("topic"),             // Sætter type til 'topic'
+		rabbitmq.WithConsumerOptionsRoutingKey("student.*"),           // Opretter Binding
+		rabbitmq.WithConsumerOptionsExchangeDurable,                   // Overlever RabbitMQ genstart
 	)
 
 	if err != nil {

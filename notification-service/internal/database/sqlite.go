@@ -47,7 +47,7 @@ func SeedData(db *gorm.DB) {
 		IsRead:  false,
 	}
 
-	notification = domain.Notification{
+	notification2 := domain.Notification{
 		ID:      "2",
 		UserID:  "12345",
 		Title:   "Velkommen til platformen",
@@ -57,4 +57,5 @@ func SeedData(db *gorm.DB) {
 	}
 
 	db.Create(&notification)
+	db.Create(&notification2)
 }

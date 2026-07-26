@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"osbourne.local/frontend/gen/notification"
 	"osbourne.local/frontend/gen/profile"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/ui"
@@ -17,8 +18,9 @@ type userContextKey string
 const userKey userContextKey = "currentUser"
 
 type App struct {
-	tmpls         map[string]*template.Template
-	profileClient *grpcclient.ProfileClient
+	tmpls              map[string]*template.Template
+	profileClient      *grpcclient.ProfileClient
+	notificationClient *grpcclient.NotificationClient
 }
 
 // Global template data struktur – gør det typsikkert at sende data til 'base'
@@ -29,7 +31,14 @@ type PageData struct {
 
 func main() {
 	tmplDashboard, err := template.ParseFS(ui.Files, "templates/layouts/base.html", "templates/dashboard.html")
+	if err != nil {
+		log.Fatalf("Fejl ved parsing af templates: %v", err)
+	}
 	tmplProfile, err := template.ParseFS(ui.Files, "templates/layouts/base.html", "templates/profile.html")
+	if err != nil {
+		log.Fatalf("Fejl ved parsing af templates: %v", err)
+	}
+	tmplNotifications, err := template.ParseFS(ui.Files, "templates/layouts/base.html", "templates/notifications.html")
 	if err != nil {
 		log.Fatalf("Fejl ved parsing af templates: %v", err)
 	}
@@ -41,12 +50,21 @@ func main() {
 	}
 	defer profileClient.Close()
 
+	notificationServiceAddr := "dns:///notification-service:50052"
+	notificationClient, err := grpcclient.NewNotificationClient(notificationServiceAddr)
+	if err != nil {
+		log.Fatalf("Fejl ved oprettelse af gRPC-klient: %v", err)
+	}
+	defer notificationClient.Close()
+
 	app := &App{
 		tmpls: map[string]*template.Template{
-			"dashboard": tmplDashboard,
-			"profile":   tmplProfile,
+			"dashboard":     tmplDashboard,
+			"profile":       tmplProfile,
+			"notifications": tmplNotifications,
 		},
-		profileClient: profileClient,
+		profileClient:      profileClient,
+		notificationClient: notificationClient,
 	}
 
 	mux := http.NewServeMux()
@@ -55,6 +73,7 @@ func main() {
 	// Wrap dine handlers i authenticatedUser middleware
 	mux.Handle("/", app.authenticatedUser(http.HandlerFunc(app.handleDashboard)))
 	mux.Handle("/profile", app.authenticatedUser(http.HandlerFunc(app.handleProfile)))
+	mux.Handle("/notifications", app.authenticatedUser(http.HandlerFunc(app.handleNotifications)))
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -67,11 +86,8 @@ func main() {
 	}
 }
 
-// Middleware: Henter altid den aktive bruger og lægger i Context (f.eks. fra cookie eller test ID)
 func (app *App) authenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Her ville du normalt hente user_id fra en cookie/JWT.
-		// Vi tager 'id' fra URL'en, hvis den findes, ellers fallback til 'usr_123'
 		userID := r.URL.Query().Get("id")
 		if userID == "" {
 			userID = "12345"
@@ -160,6 +176,38 @@ func (app *App) handleProfile(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := app.tmpls["profile"].ExecuteTemplate(w, "base", pageData); err != nil {
+		http.Error(w, "Template render error: "+err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (app *App) handleNotifications(w http.ResponseWriter, r *http.Request) {
+	// Hent den opslåede bruger
+	userID := r.URL.Query().Get("id")
+	if userID == "" {
+		userID = "12345"
+	}
+
+	res, err := app.notificationClient.Client.GetUserNotifications(
+		r.Context(),
+		&notification.NotificationsRequest{UserId: userID},
+	)
+	if err != nil {
+		http.Error(w, "Kunne ikke hente notifikationer", http.StatusBadGateway)
+		log.Printf("gRPC-kald GetUserNotifications fejlede: %v", err)
+		return
+	}
+
+	notifications := res.GetNotifications()
+
+	PageData := PageData{
+		User: getUserFromContext(r.Context()),
+		Data: map[string]interface{}{
+			"Notifications": notifications,
+		},
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := app.tmpls["notifications"].ExecuteTemplate(w, "base", PageData); err != nil {
 		http.Error(w, "Template render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }

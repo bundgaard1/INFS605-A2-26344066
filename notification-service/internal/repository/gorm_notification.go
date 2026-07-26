@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 	"osbourne.local/notification-service/gen/notification"
 	"osbourne.local/notification-service/internal/domain"
@@ -38,7 +39,7 @@ func (r *GORMNotificationRepository) GetUserNotifications(ctx context.Context, i
 			Msg:       n.Message,
 			Link:      n.LinkURL,
 			IsRead:    n.IsRead,
-			Timestamp: n.CreatedAt.Unix(),
+			Timestamp: timestamppb.New(n.CreatedAt),
 		})
 	}
 
