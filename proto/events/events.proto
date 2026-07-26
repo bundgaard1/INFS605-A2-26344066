@@ -24,4 +24,6 @@ message StudentCreatedEvent {
 message CourseEnrolledEvent {
   string student_id = 1;
   string course_id = 2;
+  string course_code = 3;
+  string course_name = 4;
 }

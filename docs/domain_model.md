@@ -9,9 +9,9 @@ Strukturerne er designet således, at de matcher **Bounded Context** princippet,
 ```go
 // UserAccount repræsenterer brugerens login-identitet
 type UserAccount struct {
-	ID           string     `gorm:"primaryKey" json:"id"`                  // UUID e.g. "usr_123456"
+	ID           string     `gorm:"primaryKey" json:"id"`                  
 	Email        string     `gorm:"uniqueIndex;not null" json:"email"`
-	PasswordHash string     `gorm:"not null" json:"-"`                     // Skjules i JSON
+	PasswordHash string     `gorm:"not null" json:"-"`
 	IsActive     bool       `gorm:"default:true" json:"is_active"`
 	LastLoginAt  *time.Time `json:"last_login_at,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`
@@ -50,7 +50,7 @@ type UserProfile struct {
 
 // Course repræsenterer stamdata for et fag i kursuskataloget
 type Course struct {
-	ID           string       `gorm:"primaryKey" json:"id"`            // f.eks. "INFS-605"
+	ID           string       `gorm:"primaryKey" json:"id"`            // f.eks. "261605" (real DB ID)
 	Code         string       `gorm:"uniqueIndex;not null" json:"code"` // f.eks. "INFS605"
 	Title        string       `gorm:"not null" json:"title"`
 	Description  string       `json:"description"`

@@ -22,11 +22,11 @@ func NewNotificationConsumer(conn *rabbitmq.Conn, svc *service.NotificationServi
 
 	consumer, err := rabbitmq.NewConsumer(
 		conn,
-		"notification_service_queue", // Navn på køen
-		rabbitmq.WithConsumerOptionsExchangeName("university.events"), // Opretter/sikrer Exchange
-		rabbitmq.WithConsumerOptionsExchangeKind("topic"),             // Sætter type til 'topic'
-		rabbitmq.WithConsumerOptionsRoutingKey("student.*"),           // Opretter Binding
-		rabbitmq.WithConsumerOptionsExchangeDurable,                   // Overlever RabbitMQ genstart
+		"notification_service_queue",
+		rabbitmq.WithConsumerOptionsExchangeName("university.events"),
+		rabbitmq.WithConsumerOptionsExchangeKind("topic"),
+		rabbitmq.WithConsumerOptionsRoutingKey("student.*"),
+		rabbitmq.WithConsumerOptionsExchangeDurable,
 	)
 
 	if err != nil {
@@ -37,11 +37,9 @@ func NewNotificationConsumer(conn *rabbitmq.Conn, svc *service.NotificationServi
 	return nc, nil
 }
 
-// Start åbner for lyttelsen på RabbitMQ beskeder
 func (c *NotificationConsumer) Start(ctx context.Context) error {
 	log.Println("[CONSUMER] NotificationConsumer lytter på RabbitMQ...")
 
-	// Run modtager en handler-funktion, der kaldes for hver besked
 	err := c.rmq.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
 		return c.processDelivery(ctx, d.Body)
 	})
@@ -49,7 +47,6 @@ func (c *NotificationConsumer) Start(ctx context.Context) error {
 	return err
 }
 
-// Close lukker forbrugeren pænt ved shutdown
 func (c *NotificationConsumer) Close() {
 	if c.rmq != nil {
 		c.rmq.Close()
@@ -57,38 +54,51 @@ func (c *NotificationConsumer) Close() {
 }
 
 func (c *NotificationConsumer) processDelivery(ctx context.Context, body []byte) rabbitmq.Action {
-	// 1. Unmarshal til fælles Protobuf Envelope
 	var envelope events.EventEnvelope
 	if err := proto.Unmarshal(body, &envelope); err != nil {
-		log.Printf("[CONSUMER] Ugyldig EventEnvelope format: %v", err)
-		// Smid beskeden væk (NackWithoutRequeue = Send ikke tilbage på køen)
+		log.Printf("[CONSUMER] Invalid EventEnvelope format: %v", err)
 		return rabbitmq.NackDiscard
 	}
 
-	// 2. Rute ud fra envelope.Type
 	switch envelope.Type {
 	case "student.created":
 		var event events.StudentCreatedEvent
 		if err := proto.Unmarshal(envelope.Payload, &event); err != nil {
-			log.Printf("[CONSUMER] Fejl ved unmarshal af StudentCreatedEvent: %v", err)
+			log.Printf("[CONSUMER] Error on unmarshal of StudentCreatedEvent: %v", err)
 			return rabbitmq.NackDiscard
 		}
 
 		// Kalder forretningslogik
 		err := c.svc.CreateNotification(ctx,
 			event.GetStudentId(),
-			"Velkommen til platformen!",
-			"Jeg er glad for at se dig på Osbourne. Vi håber, du får en god oplevelse her.",
+			"Welcome to Osbourne!",
+			"Hello "+event.GetFullName()+", welcome to Osbourne! We are excited to have you on board.",
 			"/")
 
 		if err != nil {
-			log.Printf("[CONSUMER] Fejl ved gemning af notifikation: %v", err)
+			log.Printf("[CONSUMER] Error on creating notification: %v", err)
+			return rabbitmq.NackRequeue
+		}
+	case "course.enrolled":
+		var event events.CourseEnrolledEvent
+		if err := proto.Unmarshal(envelope.Payload, &event); err != nil {
+			log.Printf("[CONSUMER] Error on unmarshal of CourseEnrolledEvent: %v", err)
+			return rabbitmq.NackDiscard
+		}
+
+		err := c.svc.CreateNotification(ctx,
+			event.GetStudentId(),
+			"Enrolled in Course: "+event.GetCourseCode(),
+			"You have been enrolled in the course: "+event.GetCourseName()+"("+event.GetCourseId()+").",
+			"/courses/"+event.GetCourseId())
+
+		if err != nil {
+			log.Printf("[CONSUMER] Error on creating notification: %v", err)
 			return rabbitmq.NackRequeue
 		}
 	default:
-		log.Printf("[CONSUMER] Ignorerer ukendt event-type: %s", envelope.Type)
+		log.Printf("[CONSUMER] Ignoring unknown event-type: %s", envelope.Type)
 	}
 
-	// Alt gik godt -> Godkend beskeden
 	return rabbitmq.Ack
 }

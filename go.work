@@ -5,4 +5,5 @@ use (
 	./frontend
 	./notification-service
 	./profile-service
+	./course-catalogue-service
 )
