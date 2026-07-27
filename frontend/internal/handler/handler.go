@@ -1,0 +1,81 @@
+package handler
+
+import (
+	"context"
+	"io/fs"
+	"log"
+	"net/http"
+
+	"osbourne.local/frontend/gen/profile"
+	grpcclient "osbourne.local/frontend/internal/clients/grpc"
+	"osbourne.local/frontend/internal/domain"
+	"osbourne.local/frontend/internal/render"
+)
+
+type contextKey string
+
+const userKey contextKey = "currentUser"
+
+type Handler struct {
+	renderer              *render.Renderer
+	profileClient         *grpcclient.ProfileClient
+	courseCatalogueClient *grpcclient.CourseCatalogueClient
+	notificationClient    *grpcclient.NotificationClient
+}
+
+func New(renderer *render.Renderer, pClient *grpcclient.ProfileClient, ccClient *grpcclient.CourseCatalogueClient, nClient *grpcclient.NotificationClient) *Handler {
+	return &Handler{
+		renderer:              renderer,
+		profileClient:         pClient,
+		courseCatalogueClient: ccClient,
+		notificationClient:    nClient,
+	}
+}
+
+func (h *Handler) RegisterRoutes(mux *http.ServeMux, staticFiles fs.FS) {
+	mux.Handle("/static/", http.FileServer(http.FS(staticFiles)))
+
+	mux.Handle("/", h.Authenticate(http.HandlerFunc(h.HandleDashboard)))
+	mux.Handle("/profile", h.Authenticate(http.HandlerFunc(h.HandleProfile)))
+	mux.Handle("/notifications", h.Authenticate(http.HandlerFunc(h.HandleNotifications)))
+	mux.Handle("/course-catalog", h.Authenticate(http.HandlerFunc(h.HandleCourseCatalog)))
+	mux.Handle("/courses/{id}", h.Authenticate(http.HandlerFunc(h.HandleCoursePage)))
+	// API Endpoints
+	mux.Handle("/api/courses/enroll", h.Authenticate(http.HandlerFunc(h.HandleEnrollCourse)))
+}
+
+// Middleware: Henter brugeren én gang til context
+func (h *Handler) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.URL.Query().Get("id")
+		if userID == "" {
+			userID = "12345"
+		}
+
+		res, err := h.profileClient.Client.GetUserProfile(
+			r.Context(),
+			&profile.ProfileRequest{UserId: userID},
+		)
+
+		user := domain.User{Name: "Gæst", Role: "Ukendt"}
+		if err == nil {
+			user = domain.User{
+				ID:   res.GetId(),
+				Name: res.GetName(),
+				Role: res.GetRole(),
+			}
+		} else {
+			log.Printf("gRPC Hentning af bruger fejlede: %v", err)
+		}
+
+		ctx := context.WithValue(r.Context(), userKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func UserFromContext(ctx context.Context) domain.User {
+	if u, ok := ctx.Value(userKey).(domain.User); ok {
+		return u
+	}
+	return domain.User{Name: "Gæst", Role: "Ukendt"}
+}

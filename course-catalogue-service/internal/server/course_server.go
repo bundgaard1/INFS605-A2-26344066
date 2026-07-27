@@ -35,7 +35,61 @@ func (s *CourseServer) GetCourse(ctx context.Context, req *coursecatalogue.GetCo
 	}, nil
 }
 
+func (s *CourseServer) ListCourses(ctx context.Context, req *coursecatalogue.ListCoursesRequest) (*coursecatalogue.ListCoursesResponse, error) {
+	log.Printf("Received gRPC request to list courses, page: %d, page_size: %d", req.GetPage(), req.GetPageSize())
+
+	courses, totalCount, err := s.courseSvc.ListCourses(ctx, req.GetPage(), req.GetPageSize())
+	if err != nil {
+		return nil, err
+	}
+
+	courseProtos := make([]*coursecatalogue.Course, 0, len(courses))
+	for _, course := range courses {
+		courseProtos = append(courseProtos, toProtoCourse(course))
+	}
+
+	return &coursecatalogue.ListCoursesResponse{
+		Courses:    courseProtos,
+		TotalCount: totalCount,
+	}, nil
+}
+
+func (s *CourseServer) EnrollUser(ctx context.Context, req *coursecatalogue.EnrollUserRequest) (*coursecatalogue.EnrollUserResponse, error) {
+	log.Printf("Received gRPC request to enroll user_id: %s in course_id: %s", req.GetUserId(), req.GetCourseId())
+
+	err := s.courseSvc.EnrollStudent(ctx, req.GetCourseId(), req.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &coursecatalogue.EnrollUserResponse{
+		Success: true,
+	}, nil
+}
+
+func (s *CourseServer) ListEnrolledCourses(ctx context.Context, req *coursecatalogue.ListEnrolledCoursesRequest) (*coursecatalogue.ListEnrolledCoursesResponse, error) {
+	log.Printf("Received gRPC request to get enrollments for user_id: %s", req.GetUserId())
+
+	enrolledCourses, err := s.courseSvc.GetEnrolledCoursesByUserID(ctx, req.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+
+	courseProtos := make([]*coursecatalogue.Course, 0, len(enrolledCourses))
+	for _, course := range enrolledCourses {
+		courseProtos = append(courseProtos, toProtoCourse(course))
+	}
+
+	return &coursecatalogue.ListEnrolledCoursesResponse{
+		EnrolledCourses: courseProtos,
+	}, nil
+}
+
 func toProtoCourse(course *domain.Course) *coursecatalogue.Course {
+	if course == nil {
+		return nil
+	}
+
 	return &coursecatalogue.Course{
 		Id:          course.ID,
 		Code:        course.Code,

@@ -1,0 +1,13 @@
+
+{{ define "title" }}Course Page{{ end }}
+
+
+{{ define "content" }}
+<section>
+    <h1>{{ .Data.Course.Title }}</h1>
+    <p><strong>Code:</strong> {{ .Data.Course.Code }}</p>
+    <p><strong>Description:</strong> {{ .Data.Course.Description }}</p>
+    <p><strong>Credits:</strong> {{ .Data.Course.Credits }}</p>
+</section>
+
+{{ end}}

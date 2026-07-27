@@ -13,6 +13,7 @@ services:
     depends_on:
       - profile-service
       - notification-service
+      - course-catalogue-service
       - frontend
     networks: 
       - osbourne-net
@@ -71,6 +72,23 @@ services:
       - osbourne-net
     restart: unless-stopped
 
+  course-catalogue-service:
+    build:
+      context: .
+      dockerfile: ./course-catalogue-service/Dockerfile
+    container_name: osbourne-course-catalogue-service
+    environment:
+      - PORT=50053
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    volumes: 
+      - ./course-catalogue-service/data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - osbourne-net
+    restart: unless-stopped
+
   frontend:
     build:
       context: .
@@ -81,9 +99,12 @@ services:
     environment:
       - PORT=8080
       - PROFILE_SERVICE_ADDR=profile-service:50051
+      - NOTIFICATION_SERVICE_ADDR=notification-service:50052
+      - COURSE_CATALOGUE_SERVICE_ADDR=course-catalogue-service:50053
     depends_on:
       - profile-service
       - notification-service
+      - course-catalogue-service
     networks:
       - osbourne-net
     restart: unless-stopped

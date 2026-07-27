@@ -1,14 +1,13 @@
 syntax = "proto3";
 
 package coursecatalogue;
-
 option go_package = "osbourne.local/course-catalogue-service/coursecatalogue;coursecatalogue";
 
 service CourseCatalogueService {
   rpc GetCourse (GetCourseRequest) returns (GetCourseResponse);
   rpc ListCourses (ListCoursesRequest) returns (ListCoursesResponse);
-  rpc EnrollStudent (EnrollStudentRequest) returns (EnrollStudentResponse);
-  rpc GetStudentEnrollments (GetStudentEnrollmentsRequest) returns (GetStudentEnrollmentsResponse);
+  rpc EnrollUser (EnrollUserRequest) returns (EnrollUserResponse);
+  rpc ListEnrolledCourses (ListEnrolledCoursesRequest) returns (ListEnrolledCoursesResponse);
 }
 
 
@@ -30,21 +29,21 @@ message ListCoursesResponse {
   int32 total_count = 2;
 }
 
-message EnrollStudentRequest {
-  string student_id = 1;
+message EnrollUserRequest {
+  string user_id = 1;
   string course_id = 2;
 }
 
-message EnrollStudentResponse {
+message EnrollUserResponse {
   bool success = 1;
 }
 
-message GetStudentEnrollmentsRequest {
-  string student_id = 1;
+message ListEnrolledCoursesRequest {
+  string user_id = 1;
 }
 
-message GetStudentEnrollmentsResponse {
-  repeated Course enrollments = 1;
+message ListEnrolledCoursesResponse {
+  repeated Course enrolled_courses = 1;
 }
 
 

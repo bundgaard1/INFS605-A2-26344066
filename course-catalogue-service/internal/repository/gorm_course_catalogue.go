@@ -49,10 +49,18 @@ func (r *GORMCourseCatalogueRepository) EnrollStudent(ctx context.Context, cours
 	return r.db.WithContext(ctx).Create(enrollment).Error
 }
 
-func (r *GORMCourseCatalogueRepository) GetEnrollmentsByUserID(ctx context.Context, userID string) ([]*domain.Enrollment, error) {
-	var enrollments []*domain.Enrollment
-	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).Find(&enrollments).Error; err != nil {
+func (r *GORMCourseCatalogueRepository) GetEnrolledCoursesByUserID(ctx context.Context, userID string) ([]*domain.Course, error) {
+	var courses []*domain.Course
+
+	err := r.db.WithContext(ctx).
+		Table("courses").
+		Joins("JOIN enrollments ON enrollments.course_id = courses.id").
+		Where("enrollments.user_id = ?", userID).
+		Find(&courses).Error
+
+	if err != nil {
 		return nil, err
 	}
-	return enrollments, nil
+
+	return courses, nil
 }

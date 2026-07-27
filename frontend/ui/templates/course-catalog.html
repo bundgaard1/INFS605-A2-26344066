@@ -1,0 +1,42 @@
+{{ define "title" }}Course Catalog{{ end }}
+
+{{ define "content" }}
+<section>
+	Welcome to your course catalog.
+    {{ if .Data.Courses }}
+        <ul>
+        {{ range .Data.Courses }}
+            <li>
+                <strong>{{ .Title }}</strong>  ({{ .Code }})
+                <p>{{ .Description }}</p>
+                <p>Credits: {{ .Credits }}</p>
+                <button onclick="enroll('{{ .Code }}')">Enroll In this course</button>
+            </li>
+        {{ end }}
+        </ul>
+    {{ else }}
+        <p>Ingen kurser at vise.</p>
+    {{ end }}
+</section>
+<script>
+async function enroll(courseId) {
+    const response = await fetch('/api/courses/enroll', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            course_id: courseId 
+        })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        alert('Tilmeldt: ' + data.success);
+    } else {
+        alert('Der skete en fejl!');
+    }
+}
+</script>
+
+{{ end }}

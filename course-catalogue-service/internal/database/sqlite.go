@@ -38,7 +38,7 @@ func SeedData(db *gorm.DB) {
 	var count int64
 	db.Model(&domain.Course{}).Count(&count)
 	if count > 0 {
-		return // Data findes allerede
+		return
 	}
 
 	courses := []domain.Course{
@@ -61,13 +61,13 @@ func SeedData(db *gorm.DB) {
 
 	enrollments := []domain.Enrollment{
 		{
-			ID:       "1",
-			CourseID: "CS101",
+			ID:       "3",
+			CourseID: "1",
 			UserID:   "12345",
 		},
 		{
-			ID:       "2",
-			CourseID: "CS102",
+			ID:       "4",
+			CourseID: "2",
 			UserID:   "12345",
 		},
 	}
