@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"osbourne.local/profile-service/gen/profile"
+	"osbourne.local/profile-service/internal/domain"
 	"osbourne.local/profile-service/internal/service"
 )
 
@@ -22,5 +23,19 @@ func NewProfileServer(profileSvc *service.ProfileService) *ProfileServer {
 func (s *ProfileServer) GetUserProfile(ctx context.Context, req *profile.ProfileRequest) (*profile.ProfileResponse, error) {
 	log.Printf("Modtog gRPC-forespørgsel for profile_id: %s", req.GetUserId())
 
-	return s.profileSvc.GetProfile(ctx, req.GetUserId())
+	p, err := s.profileSvc.GetProfile(ctx, req.GetUserId())
+	if err != nil {
+		return nil, err
+	}
+	profileProto := toProtoProfile(p)
+
+	return profileProto, nil
+}
+
+func toProtoProfile(p *domain.UserProfile) *profile.ProfileResponse {
+	return &profile.ProfileResponse{
+		Id:   p.ID,
+		Name: p.Name,
+		Role: string(p.Role),
+	}
 }

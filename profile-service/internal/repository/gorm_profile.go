@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"gorm.io/gorm"
-	"osbourne.local/profile-service/gen/profile"
 	"osbourne.local/profile-service/internal/domain"
 )
 
@@ -18,7 +17,7 @@ func NewGORMProfileRepository(db *gorm.DB) *GORMProfileRepository {
 	return &GORMProfileRepository{db: db}
 }
 
-func (r *GORMProfileRepository) GetByID(ctx context.Context, id string) (*profile.ProfileResponse, error) {
+func (r *GORMProfileRepository) GetByID(ctx context.Context, id string) (*domain.UserProfile, error) {
 	var profileEntity domain.UserProfile
 
 	err := r.db.WithContext(ctx).
@@ -31,11 +30,5 @@ func (r *GORMProfileRepository) GetByID(ctx context.Context, id string) (*profil
 		return nil, fmt.Errorf("databasefejl: %w", err)
 	}
 
-	// Map GORM domænemodel til Protobuf gRPC response
-
-	return &profile.ProfileResponse{
-		Id:   profileEntity.ID,
-		Name: profileEntity.Name,
-		Role: string(profileEntity.Role),
-	}, nil
+	return &profileEntity, nil
 }

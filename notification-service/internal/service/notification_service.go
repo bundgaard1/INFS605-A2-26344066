@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"osbourne.local/notification-service/gen/notification"
+	"osbourne.local/notification-service/internal/domain"
 	"osbourne.local/notification-service/internal/repository"
 )
 
@@ -15,11 +15,11 @@ func NewNotificationService(repo repository.NotificationRepository) *Notificatio
 	return &NotificationService{repo: repo}
 }
 
-func (s *NotificationService) GetUserNotifications(ctx context.Context, id string) (*notification.NotificationsResponse, error) {
+func (s *NotificationService) GetUserNotifications(ctx context.Context, id string) (*[]domain.Notification, error) {
 	return s.repo.GetUserNotifications(ctx, id)
 }
 
-func (s *NotificationService) MarkNotificationAsRead(ctx context.Context, notificationID string) (*notification.MarkNotificationAsReadResponse, error) {
+func (s *NotificationService) MarkNotificationAsRead(ctx context.Context, notificationID string) (*domain.Notification, error) {
 	return s.repo.MarkNotificationAsRead(ctx, notificationID)
 }
 

@@ -57,8 +57,8 @@ func TestGORMProfileRepository_GetByID(t *testing.T) {
 		t.Fatalf("Forventede ingen fejl, men fik: %v", err)
 	}
 
-	if result.Id != testStudent.ID {
-		t.Errorf("Forventede ID %s, men fik %s", testStudent.ID, result.Id)
+	if result.ID != testStudent.ID {
+		t.Errorf("Forventede ID %s, men fik %s", testStudent.ID, result.ID)
 	}
 
 	if result.Name != testStudent.Name {

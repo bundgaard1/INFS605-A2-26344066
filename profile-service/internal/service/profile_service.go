@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"osbourne.local/profile-service/gen/profile"
+	"osbourne.local/profile-service/internal/domain"
 	"osbourne.local/profile-service/internal/repository"
 )
 
@@ -16,7 +16,7 @@ func NewProfileService(repo repository.ProfileRepository) *ProfileService {
 	return &ProfileService{repo: repo}
 }
 
-func (s *ProfileService) GetProfile(ctx context.Context, id string) (*profile.ProfileResponse, error) {
+func (s *ProfileService) GetProfile(ctx context.Context, id string) (*domain.UserProfile, error) {
 	// Kald databaselaget
 	return s.repo.GetByID(ctx, id)
 }
