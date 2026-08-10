@@ -2,6 +2,9 @@ package database
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
 
 	// Brug den officielle GORM dialekt-adapter fra glebarez:
 
@@ -13,6 +16,11 @@ import (
 )
 
 func NewGORMDB(dbPath string) (*gorm.DB, error) {
+	// Ensure folder exists
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		log.Fatalf("Failed to create DB directory: %v", err)
+	}
+
 	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -20,7 +28,6 @@ func NewGORMDB(dbPath string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("kunne ikke forbinde til SQLite via GORM: %w", err)
 	}
 
-	// Aktiver WAL via en direkte PRAGMA i stedet for query string
 	db.Exec("PRAGMA journal_mode=WAL;")
 
 	err = db.AutoMigrate(&domain.UserProfile{})
@@ -35,7 +42,7 @@ func SeedData(db *gorm.DB) {
 	var count int64
 	db.Model(&domain.UserProfile{}).Count(&count)
 	if count > 0 {
-		return // Data findes allerede
+		return
 	}
 
 	student := domain.UserProfile{

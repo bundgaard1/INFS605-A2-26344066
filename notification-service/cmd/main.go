@@ -30,7 +30,12 @@ func main() {
 		log.Fatalf("Kunne ikke lytte på port :%s: %v", port, err)
 	}
 
-	db, err := database.NewGORMDB("./notifications.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./notifications.db"
+	}
+
+	db, err := database.NewGORMDB(dbPath)
 	if err != nil {
 		log.Fatalf("DB fejl: %v", err)
 	}

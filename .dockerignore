@@ -1,9 +1,16 @@
-.git
-.gitignore
-node_modules
-.env.local
-*.log
-__pycache__
+# Go binaries and tmp files
+**/tmp/
+**/bin/
+*.exe
+
+# Go workspace file (keeps it local for your IDE)
+go.work
+go.work.sum
+
+# Docker volume / runtime data
+**/data/
+
+# OS / IDE metadata
 .DS_Store
-.vscode
-.idea
+.idea/
+.vscode/

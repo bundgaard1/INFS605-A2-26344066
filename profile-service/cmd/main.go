@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -27,7 +28,14 @@ func main() {
 		log.Fatalf("Kunne ikke lytte på port :%s: %v", port, err)
 	}
 
-	db, err := database.NewGORMDB("./profiles.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./profiles.db"
+	}
+
+	fmt.Println("Database path:", dbPath) // Debugging line to check the DB_PATH value
+
+	db, err := database.NewGORMDB(dbPath)
 	if err != nil {
 		log.Fatalf("DB fejl: %v", err)
 	}

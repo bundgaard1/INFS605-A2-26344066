@@ -6,4 +6,5 @@ use (
 	./notification-service
 	./profile-service
 	./course-catalogue-service
+	./course-content-service
 )

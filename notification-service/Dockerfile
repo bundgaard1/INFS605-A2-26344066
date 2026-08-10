@@ -1,5 +1,5 @@
 # ==========================================
-# STAGE 1: Build phase (Monorepo Context)
+# STAGE 1: Build phase (Service-Isolated Context)
 # ==========================================
 FROM golang:1.26-alpine AS builder
 
@@ -7,14 +7,16 @@ RUN apk add --no-cache ca-certificates git
 
 WORKDIR /app
 
-COPY notification-service/go.mod notification-service/go.sum ./notification-service/
-RUN cd notification-service && go mod download
+COPY go.mod go.sum ./
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY . .
 
-# 3. Skift til notification-service mappen og kompiler binærfilen
-WORKDIR /app/notification-service
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /notification-service ./cmd/main.go
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /notification-service ./cmd/main.go
 
 # ==========================================
 # STAGE 2: Minimal Runtime phase
@@ -26,9 +28,11 @@ RUN apk --no-cache add ca-certificates && \
 
 WORKDIR /app
 
-RUN chown -R appuser:appgroup /app
-
 COPY --from=builder /notification-service .
+
+# Specific file ownership instead of chown -R /app to keep image layers lean
+RUN mkdir -p /app/data && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 

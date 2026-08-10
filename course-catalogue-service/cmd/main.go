@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -17,6 +18,8 @@ import (
 )
 
 func main() {
+	fmt.Println("hej")
+
 	port := "50053"
 	if port == "" {
 		port = "50053"
@@ -27,7 +30,12 @@ func main() {
 		log.Fatalf("Could not listen on port %s: %v", port, err)
 	}
 
-	db, err := database.NewGORMDB("./courses.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./courses.db"
+	}
+
+	db, err := database.NewGORMDB(dbPath)
 	if err != nil {
 		log.Fatalf("Could not connect to database: %v", err)
 	}

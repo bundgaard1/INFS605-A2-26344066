@@ -2,6 +2,11 @@ networks:
   osbourne-net:
     driver: bridge
 
+volumes:
+  profile-data:
+  notification-data:
+  course-catalogue-data:
+
 services:
   api-gateway:
     image: nginx:alpine
@@ -43,14 +48,15 @@ services:
 
   profile-service:
     build:
-      context: .
-      dockerfile: ./profile-service/Dockerfile
+      context: ./profile-service
+      dockerfile: Dockerfile
     container_name: osbourne-profile-service
     environment:
       - PORT=50051
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DB_PATH=/app/data/profiles.db
     volumes: 
-      - ./profile-service/data:/app/data
+      - profile-data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -60,14 +66,15 @@ services:
 
   notification-service:
     build:
-      context: .
-      dockerfile: ./notification-service/Dockerfile
+      context: ./notification-service
+      dockerfile: Dockerfile
     container_name: osbourne-notification-service
     environment:
       - PORT=50052
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DB_PATH=/app/data/notification.db  
     volumes: 
-      - ./notification-service/data:/app/data
+      - notification-data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -77,14 +84,15 @@ services:
 
   course-catalogue-service:
     build:
-      context: .
-      dockerfile: ./course-catalogue-service/Dockerfile
+      context: ./course-catalogue-service
+      dockerfile: Dockerfile
     container_name: osbourne-course-catalogue-service
     environment:
       - PORT=50053
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DB_PATH=/app/data/course-catalogue.db   
     volumes: 
-      - ./course-catalogue-service/data:/app/data
+      - course-catalogue-data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -94,8 +102,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: osbourne-frontend
     ports:
       - "8080:8080"

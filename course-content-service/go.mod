@@ -2,6 +2,8 @@ module osbourne.local/course-content-service
 
 go 1.26.0
 
+require github.com/ostafen/clover/v2 v2.0.0-alpha.3
+
 require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -16,7 +18,6 @@ require (
 	github.com/google/flatbuffers v2.0.6+incompatible // indirect
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/ostafen/clover/v2 v2.0.0-alpha.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect

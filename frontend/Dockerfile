@@ -1,23 +1,20 @@
-# ==========================================
-# STAGE 1: Build phase (Monorepo Context)
-# ==========================================
 FROM golang:1.26-alpine AS builder
 
-RUN apk add --no-cache ca-certificates git
+RUN apk add --no-cache ca-certificates git 
 
 WORKDIR /app
 
-COPY frontend/go.mod frontend/go.sum ./frontend/
-RUN cd frontend && go mod download
+COPY go.mod go.sum ./
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY . .
 
-WORKDIR /app/frontend
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /frontend ./cmd
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /frontend ./cmd/main.go
 
-# ==========================================
-# STAGE 2: Minimal Runtime phase
-# ==========================================
 FROM alpine:3.20
 
 RUN apk --no-cache add ca-certificates && \
@@ -25,7 +22,9 @@ RUN apk --no-cache add ca-certificates && \
 
 WORKDIR /app
 
-COPY --from=builder /frontend ./frontend
+COPY --from=builder /frontend .
+    
+RUN chown appuser:appgroup /app/frontend
 
 USER appuser
 
