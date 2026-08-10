@@ -78,7 +78,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 
 **Mål:** Tilføj resten af universitetets domæneservices og introducer NoSQL til kursusindhold.
 
-### [ ] Step 3.1: Course Catalogue Service (Service #3 - SQL)
+### [x] Step 3.1: Course Catalogue Service (Service #3 - SQL)
 
 * **Handling:** Byg `catalogue-service` med ansvar for fagkataloget og **Enrollments** (M2M relation mellem `student_id` og `course_id`).
 * **Implementering:** Eksponer gRPC endpoints: `GetCourse`, `ListCourses`, `EnrollStudent`.

@@ -59,17 +59,17 @@ func SeedData(db *gorm.DB) {
 	}
 	db.CreateInBatches(&courses, 10)
 
-	enrollments := []domain.Enrollment{
-		{
-			ID:       "3",
-			CourseID: "1",
-			UserID:   "12345",
-		},
-		{
-			ID:       "4",
-			CourseID: "2",
-			UserID:   "12345",
-		},
-	}
-	db.CreateInBatches(&enrollments, 10)
+	// enrollments := []domain.Enrollment{
+	// 	{
+	// 		ID:       "3",
+	// 		CourseID: "1",
+	// 		UserID:   "12345",
+	// 	},
+	// 	{
+	// 		ID:       "4",
+	// 		CourseID: "2",
+	// 		UserID:   "12345",
+	// 	},
+	// }
+	// db.CreateInBatches(&enrollments, 10)
 }

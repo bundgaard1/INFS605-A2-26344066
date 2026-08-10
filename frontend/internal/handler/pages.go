@@ -98,7 +98,10 @@ func (h *Handler) HandleCourseCatalog(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.courseCatalogueClient.Client.ListCourses(
 		r.Context(),
-		&coursecatalogue.ListCoursesRequest{},
+		&coursecatalogue.ListCoursesRequest{
+			Page:     1,
+			PageSize: 10,
+		},
 	)
 	if err != nil {
 		http.Error(w, "Kunne ikke hente kursus katalog", http.StatusBadGateway)
