@@ -23,90 +23,21 @@ type UserAccount struct {
 
 ## 2. Student Profile Service (`profile-service`)
 
-```go
-type UserRole string
-
-const (
-	RoleStudent   UserRole = "Student"
-	RoleTeacher   UserRole = "Teacher"
-)
-
-// UserProfile indeholder brugerens personlige stamdata
-type UserProfile struct {
-	ID         string    `gorm:"primaryKey" json:"id"` // Samme ID som UserAccount.ID
-	Name       string    `gorm:"not null" json:"name"`
-	Role       UserRole  `gorm:"type:string;default:'Student';not null" json:"role"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-}
-
-```
+See the `domain` folder in `profile-service`
 
 ---
 
 ## 3. Course Catalogue Service (`course-catalogue-service`)
 
-```go
-
-// Course repræsenterer stamdata for et fag i kursuskataloget
-type Course struct {
-	ID           string       `gorm:"primaryKey" json:"id"`            // f.eks. "261605" (real DB ID)
-	Code         string       `gorm:"uniqueIndex;not null" json:"code"` // f.eks. "INFS605"
-	Title        string       `gorm:"not null" json:"title"`
-	Description  string       `json:"description"`
-	Credits          int     `gorm:"not null" json:"credits"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-}
-
-// Enrollment opbevares i Course Catalogue Service
-type Enrollment struct {
-	ID        string           `gorm:"primaryKey" json:"id"`
-	CourseID  string           `gorm:"index;not null;compositeIndex:idx_student_course,unique" json:"course_id"`
-	UserID    string           `gorm:"index;not null;compositeIndex:idx_student_course,unique" json:"user_id"` // Refererer til 
-	EnrolledAt time.Time       `json:"enrolled_at"`
-}
-
-```
+See the `domain`folder in `course-catalogue-service`
 
 ---
 
 ## 4. Course Content Service (`course-content-service`)
 
-```go
-
-// BlockType angiver hvilken type indholdskomponent der er tale om
-type BlockType string
-
-const (
-	BlockText  BlockType = "text"
-	BlockFile  BlockType = "file"
-)
-
-// ContentBlock repræsenterer én byggeklods i en lektion
-type ContentBlock struct {
-	ID        string    `bson:"id" json:"id"`
-	Type      BlockType `bson:"type" json:"type"` // "text", "video", "quiz", etc.
-	Order     int       `bson:"order" json:"order"`
-	
-	// Felterne er valgfrie afhængigt af BlockType:
-	TextContent string   `bson:"text_content,omitempty" json:"text_content,omitempty"` // For BlockText
-	FileURL    string   `bson:"media_url,omitempty" json:"media_url,omitempty"`       // For BlockVideo
-}
+See the `domain` folder in `course-content-service`
 
 
-// Module er hoveddokumentet i MongoDB/NoSQL samlingen "modules"
-type Module struct {
-	ID          string         `bson:"_id" json:"id"`                      // f.eks. "mod_01"
-	CourseID    string         `bson:"course_id" json:"course_id"`          // Refererer til Course Catalogue
-	Title       string         `bson:"title" json:"title"`
-	Description string         `bson:"description,omitempty" json:"description,omitempty"`
-	Order       int            `bson:"order" json:"order"`
-	Blocks      []ContentBlock `bson:"blocks" json:"blocks"`               // Alt indhold gemmes direkte i dokumentet!
-	UpdatedAt   time.Time      `bson:"updated_at" json:"updated_at"`
-}
-
-```
 
 ---
 

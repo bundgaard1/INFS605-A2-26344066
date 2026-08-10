@@ -9,7 +9,7 @@ INFS605 - course project
 # Requirements
 - Minimum 3 new services
 - Docker and DockerCompose, git, Yaml, SQL or noSQL,
-- Optional languages.
+- Optional languages. (Go)
 
 ## Services (Ideas)
 - Student Profile Service
