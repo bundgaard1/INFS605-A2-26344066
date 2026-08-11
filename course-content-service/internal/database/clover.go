@@ -31,11 +31,11 @@ func SeedCloverData(db *c.DB) error {
 	}
 
 	module := domain.Module{
-		ID:       "1",
-		CourseID: "1",
-		Title:    "Module 1",
-		Text:     "This is the first module.",
-		Files:    []domain.File{},
+		ID:          "1",
+		CourseID:    "1",
+		Title:       "Module 1",
+		Text:        "This is the first module.",
+		Attachments: []domain.Attachment{},
 	}
 
 	doc := document.NewDocumentOf(module)
