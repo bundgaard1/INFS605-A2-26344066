@@ -9,7 +9,7 @@ import (
 )
 
 type LocalFileStorage struct {
-	baseDir string // e.g. "./uploads"
+	baseDir string
 }
 
 func NewLocalFileStorage(baseDir string) (*LocalFileStorage, error) {
@@ -38,6 +38,15 @@ func (s *LocalFileStorage) Save(ctx context.Context, relativePath string, src io
 	}
 
 	return relativePath, nil
+}
+
+func (s *LocalFileStorage) Get(ctx context.Context, relativePath string) (io.ReadCloser, error) {
+	fullPath := filepath.Join(s.baseDir, relativePath)
+	file, err := os.Open(fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	return file, nil
 }
 
 func (s *LocalFileStorage) Delete(ctx context.Context, relativePath string) error {

@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package course_content.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "osbourne.local/course-content-service/gen/v1;coursecontentv1";
+
+service CourseContentService {
+  rpc CreateModule(CreateModuleRequest) returns (CreateModuleResponse);
+  rpc GetModule(GetModuleRequest) returns (GetModuleResponse);
+  rpc UpdateModule(UpdateModuleRequest) returns (UpdateModuleResponse);
+  rpc DeleteModule(DeleteModuleRequest) returns (DeleteModuleResponse);
+  rpc ListModulesByCourseID(ListModulesByCourseIDRequest) returns (ListModulesByCourseIDResponse);
+}
+
+message Module {
+  string id = 1;
+  string course_id = 2;
+  string title = 3;
+  string text = 4;
+}
+
+message CreateModuleRequest {
+  string course_id = 1;
+  string title = 2;
+  string text = 3;
+}
+
+message CreateModuleResponse {
+  Module module = 1;
+}
+
+message GetModuleRequest {
+  string module_id = 1;
+}
+
+message GetModuleResponse {
+  Module module = 1;
+}
+
+message UpdateModuleRequest {
+  string id = 1;
+  string title = 2;
+  string text = 3;
+}
+
+message UpdateModuleResponse {
+  Module module = 1;
+}
+
+message DeleteModuleRequest {
+  string module_id = 1;
+}
+
+message DeleteModuleResponse {
+  bool success = 1;
+}
+
+message ListModulesByCourseIDRequest {
+  string course_id = 1;
+}
+
+message ListModulesByCourseIDResponse {
+  repeated Module modules = 1;
+}

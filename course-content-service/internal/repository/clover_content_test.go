@@ -47,16 +47,6 @@ func TestCloverContentRepository_CreateAndGetModule(t *testing.T) {
 		Title:     "Introduction to Go",
 		Text:      "Learn Go fundamentals",
 		UpdatedAt: time.Now().Truncate(time.Millisecond),
-		Attachments: []domain.Attachment{
-			{
-				ID:        "1",
-				Name:      "Go Cheat Sheet",
-				Type:      "pdf",
-				Path:      "http://example.com/go-cheatsheet.pdf",
-				Size:      1024,
-				CreatedAt: time.Now().Truncate(time.Millisecond),
-			},
-		},
 	}
 
 	// 1. Test Create
@@ -92,9 +82,9 @@ func TestCloverContentRepository_CreateAndGetModule(t *testing.T) {
 		t.Errorf("expected UpdatedAt %v, got %v", inputModule.UpdatedAt, fetched.UpdatedAt)
 	}
 
-	if len(fetched.Attachments) != len(inputModule.Attachments) {
-		t.Fatalf("expected %d attachments, got %d", len(inputModule.Attachments), len(fetched.Attachments))
-	}
+	// if len(fetched.Attachments) != len(inputModule.Attachments) {
+	// 	t.Fatalf("expected %d attachments, got %d", len(inputModule.Attachments), len(fetched.Attachments))
+	// }
 }
 
 func TestCloverContentRepository_UpdateAndDeleteModule(t *testing.T) {
@@ -150,65 +140,65 @@ func TestCloverContentRepository_UpdateAndDeleteModule(t *testing.T) {
 	}
 }
 
-func TestCloverContentRepository_AddAndRemoveAttachment(t *testing.T) {
-	db, cleanup := setupTestDB(t)
-	defer cleanup()
+// func TestCloverContentRepository_AddAndRemoveAttachment(t *testing.T) {
+// 	db, cleanup := setupTestDB(t)
+// 	defer cleanup()
 
-	repo := repository.NewCloverContentRepository(db, "modules-test")
-	ctx := context.Background()
+// 	repo := repository.NewCloverContentRepository(db, "modules-test")
+// 	ctx := context.Background()
 
-	module := &domain.Module{
-		ID:        "1",
-		CourseID:  "101",
-		Title:     "Module with Attachments",
-		Text:      "Testing attachments",
-		UpdatedAt: time.Now().Truncate(time.Millisecond),
-	}
+// 	module := &domain.Module{
+// 		ID:        "1",
+// 		CourseID:  "101",
+// 		Title:     "Module with Attachments",
+// 		Text:      "Testing attachments",
+// 		UpdatedAt: time.Now().Truncate(time.Millisecond),
+// 	}
 
-	// Create the module first
-	err := repo.CreateModule(ctx, module)
-	if err != nil {
-		t.Fatalf("expected no error on create, got %v", err)
-	}
+// 	// Create the module first
+// 	err := repo.CreateModule(ctx, module)
+// 	if err != nil {
+// 		t.Fatalf("expected no error on create, got %v", err)
+// 	}
 
-	attachment := &domain.Attachment{
-		Name:      "Attachment 1",
-		Type:      "pdf",
-		Path:      "/path/to/attachment1.pdf",
-		Size:      2048,
-		CreatedAt: time.Now().Truncate(time.Millisecond),
-	}
+// 	attachment := &domain.Attachment{
+// 		Name:      "Attachment 1",
+// 		Type:      "pdf",
+// 		Path:      "/path/to/attachment1.pdf",
+// 		Size:      2048,
+// 		CreatedAt: time.Now().Truncate(time.Millisecond),
+// 	}
 
-	// Add attachment
-	err = repo.AddAttachmentToModule(ctx, module.ID, attachment)
-	if err != nil {
-		t.Fatalf("expected no error on add attachment, got %v", err)
-	}
+// 	// Add attachment
+// 	err = repo.AddAttachmentToModule(ctx, module.ID, attachment)
+// 	if err != nil {
+// 		t.Fatalf("expected no error on add attachment, got %v", err)
+// 	}
 
-	// Verify attachment added
-	fetched, err := repo.GetModule(ctx, module.ID)
-	if err != nil {
-		t.Fatalf("expected no error on get after adding attachment, got %v", err)
-	}
-	if len(fetched.Attachments) != 1 || fetched.Attachments[0].ID != attachment.ID {
-		t.Errorf("attachment was not added correctly")
-	}
+// 	// Verify attachment added
+// 	fetched, err := repo.GetModule(ctx, module.ID)
+// 	if err != nil {
+// 		t.Fatalf("expected no error on get after adding attachment, got %v", err)
+// 	}
+// 	if len(fetched.Attachments) != 1 || fetched.Attachments[0].ID != attachment.ID {
+// 		t.Errorf("attachment was not added correctly")
+// 	}
 
-	// Remove attachment
-	err = repo.RemoveAttachmentFromModule(ctx, module.ID, attachment.ID)
-	if err != nil {
-		t.Fatalf("expected no error on remove attachment, got %v", err)
-	}
+// 	// Remove attachment
+// 	err = repo.RemoveAttachmentFromModule(ctx, module.ID, attachment.ID)
+// 	if err != nil {
+// 		t.Fatalf("expected no error on remove attachment, got %v", err)
+// 	}
 
-	// Verify attachment removed
-	fetched, err = repo.GetModule(ctx, module.ID)
-	if err != nil {
-		t.Fatalf("expected no error on get after removing attachment, got %v", err)
-	}
-	if len(fetched.Attachments) != 0 {
-		t.Errorf("attachment was not removed correctly")
-	}
-}
+// 	// Verify attachment removed
+// 	fetched, err = repo.GetModule(ctx, module.ID)
+// 	if err != nil {
+// 		t.Fatalf("expected no error on get after removing attachment, got %v", err)
+// 	}
+// 	if len(fetched.Attachments) != 0 {
+// 		t.Errorf("attachment was not removed correctly")
+// 	}
+// }
 
 func LogAllModules(t *testing.T, repo *repository.CloverContentRepository) {
 	t.Helper()
@@ -230,8 +220,8 @@ func LogModuleDetails(t *testing.T, module *domain.Module) {
 		return
 	}
 	t.Logf("-Module ID: %s, CourseID: %s, Title: %s, Text: %s, UpdatedAt: %v", module.ID, module.CourseID, module.Title, module.Text, module.UpdatedAt)
-	t.Logf("-Attachments count: %d", len(module.Attachments))
-	for i, att := range module.Attachments {
-		t.Logf("--Attachment [%d]: ID: %s, Name: %s, Type: %s, Path: %s, Size: %d, CreatedAt: %v", i, att.ID, att.Name, att.Type, att.Path, att.Size, att.CreatedAt)
-	}
+	// t.Logf("-Attachments count: %d", len(module.Attachments))
+	// for i, att := range module.Attachments {
+	// 	t.Logf("--Attachment [%d]: ID: %s, Name: %s, Type: %s, Path: %s, Size: %d, CreatedAt: %v", i, att.ID, att.Name, att.Type, att.Path, att.Size, att.CreatedAt)
+	// }
 }

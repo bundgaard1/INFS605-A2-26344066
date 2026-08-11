@@ -28,17 +28,17 @@ func NewCloverContentRepository(db *c.DB, cn string) *CloverContentRepository {
 	return &CloverContentRepository{db: db, collectionName: cn}
 }
 
-func (r *CloverContentRepository) ListModules(ctx context.Context, courseID string) ([]*domain.Module, int32, error) {
+func (r *CloverContentRepository) ListModules(ctx context.Context, courseID string) ([]*domain.Module, error) {
 	results, err := r.db.FindAll(query.NewQuery(r.collectionName).Where(query.Field("course_id").Eq(courseID)))
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	modules := make([]*domain.Module, len(results))
 	for i, result := range results {
 		modules[i], _ = toDomainModule(result)
 	}
-	return modules, int32(len(modules)), nil
+	return modules, nil
 }
 
 func (r *CloverContentRepository) CreateModule(ctx context.Context, module *domain.Module) error {
@@ -96,73 +96,73 @@ func (r *CloverContentRepository) DeleteModule(ctx context.Context, moduleID str
 	return err
 }
 
-func (r *CloverContentRepository) AddAttachmentToModule(ctx context.Context, moduleID string, attachment *domain.Attachment) error {
-	assertion := query.Field("id").Eq(moduleID)
+// func (r *CloverContentRepository) AddAttachmentToModule(ctx context.Context, moduleID string, attachment *domain.Attachment) error {
+// 	assertion := query.Field("id").Eq(moduleID)
 
-	var updateErr error
+// 	var updateErr error
 
-	err := r.db.UpdateFunc(
-		query.NewQuery(r.collectionName).Where(assertion),
-		func(doc *document.Document) *document.Document {
-			module, err := toDomainModule(doc)
-			if err != nil {
-				updateErr = err
-				return doc
-			}
+// 	err := r.db.UpdateFunc(
+// 		query.NewQuery(r.collectionName).Where(assertion),
+// 		func(doc *document.Document) *document.Document {
+// 			module, err := toDomainModule(doc)
+// 			if err != nil {
+// 				updateErr = err
+// 				return doc
+// 			}
 
-			module.Attachments = append(module.Attachments, *attachment)
+// 			module.Attachments = append(module.Attachments, *attachment)
 
-			doc.Set("attachments", module.Attachments)
-			return doc
-		},
-	)
+// 			doc.Set("attachments", module.Attachments)
+// 			return doc
+// 		},
+// 	)
 
-	if updateErr != nil {
-		return fmt.Errorf("failed to process module document: %w", updateErr)
-	}
-	if err != nil {
-		return fmt.Errorf("failed to add attachment to module: %w", err)
-	}
+// 	if updateErr != nil {
+// 		return fmt.Errorf("failed to process module document: %w", updateErr)
+// 	}
+// 	if err != nil {
+// 		return fmt.Errorf("failed to add attachment to module: %w", err)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (r *CloverContentRepository) RemoveAttachmentFromModule(ctx context.Context, moduleID string, attachmentID string) error {
-	assertion := query.Field("id").Eq(moduleID)
+// func (r *CloverContentRepository) RemoveAttachmentFromModule(ctx context.Context, moduleID string, attachmentID string) error {
+// 	assertion := query.Field("id").Eq(moduleID)
 
-	var updateErr error
+// 	var updateErr error
 
-	err := r.db.UpdateFunc(
-		query.NewQuery(r.collectionName).Where(assertion),
-		func(doc *document.Document) *document.Document {
-			module, err := toDomainModule(doc)
-			if err != nil {
-				updateErr = err
-				return doc
-			}
+// 	err := r.db.UpdateFunc(
+// 		query.NewQuery(r.collectionName).Where(assertion),
+// 		func(doc *document.Document) *document.Document {
+// 			module, err := toDomainModule(doc)
+// 			if err != nil {
+// 				updateErr = err
+// 				return doc
+// 			}
 
-			updatedAttachments := make([]domain.Attachment, 0, len(module.Attachments))
-			for _, att := range module.Attachments {
-				if att.ID != attachmentID {
-					updatedAttachments = append(updatedAttachments, att)
-				}
-			}
+// 			updatedAttachments := make([]domain.Attachment, 0, len(module.Attachments))
+// 			for _, att := range module.Attachments {
+// 				if att.ID != attachmentID {
+// 					updatedAttachments = append(updatedAttachments, att)
+// 				}
+// 			}
 
-			doc.Set("attachments", updatedAttachments)
-			return doc
-		},
-	)
+// 			doc.Set("attachments", updatedAttachments)
+// 			return doc
+// 		},
+// 	)
 
-	if updateErr != nil {
-		return fmt.Errorf("failed to process module document: %w", updateErr)
-	}
-	if err != nil {
-		return fmt.Errorf("failed to remove attachment from module: %w", err)
-	}
+// 	if updateErr != nil {
+// 		return fmt.Errorf("failed to process module document: %w", updateErr)
+// 	}
+// 	if err != nil {
+// 		return fmt.Errorf("failed to remove attachment from module: %w", err)
+// 	}
 
-	return nil
+// 	return nil
 
-}
+// }
 
 func (r *CloverContentRepository) GetAllModules(ctx context.Context) ([]*domain.Module, int32, error) {
 	result, err := r.db.FindAll(query.NewQuery(r.collectionName))

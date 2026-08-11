@@ -3,14 +3,13 @@ package database
 import (
 	"fmt"
 
-	"github.com/ostafen/clover/v2"
 	c "github.com/ostafen/clover/v2"
 	"github.com/ostafen/clover/v2/document"
 	"osbourne.local/course-content-service/internal/domain"
 )
 
-func NewCloverDB(connectionString string) (*clover.DB, error) {
-	db, err := clover.Open(connectionString)
+func NewCloverDB(connectionString string) (*c.DB, error) {
+	db, err := c.Open(connectionString)
 	if err != nil {
 		return nil, err
 	}
@@ -31,11 +30,10 @@ func SeedCloverData(db *c.DB) error {
 	}
 
 	module := domain.Module{
-		ID:          "1",
-		CourseID:    "1",
-		Title:       "Module 1",
-		Text:        "This is the first module.",
-		Attachments: []domain.Attachment{},
+		ID:       "1",
+		CourseID: "1",
+		Title:    "Module 1",
+		Text:     "This is the first module.",
 	}
 
 	doc := document.NewDocumentOf(module)
