@@ -115,7 +115,7 @@ func (s *ModuleService) ListModulesByCourseID(ctx context.Context, courseID stri
 // 		ID:        attachmentID,
 // 		Name:      fileName,
 // 		Type:      fileType,
-// 		Path:      savedPath, // Kan konverteres til fuld URL i API-laget eller her
+// 		Path:      savedPath, // Can be converted to a full URL in the API layer or here
 // 		Size:      size,
 // 		CreatedAt: time.Now(),
 // 	}
@@ -123,7 +123,7 @@ func (s *ModuleService) ListModulesByCourseID(ctx context.Context, courseID stri
 // 	// 5. Add the attachment metadata to the module in the database
 // 	err = s.repo.AddAttachmentToModule(ctx, moduleID, attachment)
 // 	if err != nil {
-// 		// ROLLBACK: Hvis databasen fejler, sletter vi den gemte fil igen
+// 		// ROLLBACK: If the database fails, we delete the saved file again
 // 		_ = s.fileStore.Delete(ctx, savedPath)
 // 		return nil, fmt.Errorf("failed to attach file metadata to module in DB: %w", err)
 // 	}

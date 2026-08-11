@@ -1,13 +1,13 @@
-Her er den samlede Go markdown-oversigt over **domænestructs (GORM/Entities)** for alle 6 mikrotjenester.
+Here is the complete Go markdown overview of the **domain structs (GORM/Entities)** for all 6 microservices.
 
-Strukturerne er designet således, at de matcher **Bounded Context** princippet, hvor services kun refererer til hinandens entiteter via simple streng-IDs (`UserID`, `CourseID`, osv.) i stedet for direkte database-foreign-keys.
+The structs are designed to match the **Bounded Context** principle, where services only reference each other's entities via simple string IDs (`UserID`, `CourseID`, etc.) instead of direct database foreign keys.
 
 ---
 
 ## 1. Authentication Service (`auth-service`)
 
 ```go
-// UserAccount repræsenterer brugerens login-identitet
+// UserAccount represents the user's login identity
 type UserAccount struct {
 	ID           string     `gorm:"primaryKey" json:"id"`                  
 	Email        string     `gorm:"uniqueIndex;not null" json:"email"`
@@ -29,7 +29,7 @@ See the `domain` folder in `profile-service`
 
 ## 3. Course Catalogue Service (`course-catalogue-service`)
 
-See the `domain`folder in `course-catalogue-service`
+See the `domain` folder in `course-catalogue-service`
 
 ---
 
@@ -43,10 +43,10 @@ See the `domain` folder in `course-content-service`
 
 ```go
 
-// Assignment repræsenterer en opgave med deadline
+// Assignment represents an assignment with a deadline
 type Assignment struct {
 	ID          string       `gorm:"primaryKey" json:"id"`
-	CourseID    string       `gorm:"index;not null" json:"course_id"` // Refererer til Course.ID
+	CourseID    string       `gorm:"index;not null" json:"course_id"` // Refers to Course.ID
 	Title       string       `gorm:"not null" json:"title"`
 	Description string       `json:"description"`
 	DueDate     time.Time    `gorm:"not null" json:"due_date"`
@@ -55,23 +55,23 @@ type Assignment struct {
 	UpdatedAt   time.Time    `json:"updated_at"`
 }
 
-// Submission er en studerendes aflevering af en opgave
+// Submission is a student's submission of an assignment
 type Submission struct {
 	ID           string    `gorm:"primaryKey" json:"id"`
 	AssignmentID string    `gorm:"index;not null" json:"assignment_id"`
-	StudentID    string    `gorm:"index;not null" json:"student_id"` // Refererer til UserProfile.ID
-	FileURL      string    `gorm:"not null" json:"file_url"`        // Link til den afleverede fil
+	StudentID    string    `gorm:"index;not null" json:"student_id"` // Refers to UserProfile.ID
+	FileURL      string    `gorm:"not null" json:"file_url"`        // Link to the submitted file
 	SubmittedAt  time.Time `json:"submitted_at"`
 	Grade        *Grade    `gorm:"foreignKey:SubmissionID" json:"grade,omitempty"`
 }
 
-// Grade indeholder den tildelte bedømmelse og feedback fra underviseren
+// Grade contains the awarded assessment and feedback from the instructor
 type Grade struct {
 	ID           string    `gorm:"primaryKey" json:"id"`
 	SubmissionID string    `gorm:"uniqueIndex;not null" json:"submission_id"`
-	GraderID     string    `gorm:"not null" json:"grader_id"` // Underviserens/TA'ens UserID
-	Score        int       `gorm:"not null" json:"score"`     // f.eks. 85.5 ud af 100
-	LetterGrade  string    `json:"letter_grade,omitempty"`    // f.eks. "A", "12", "Pass"
+	GraderID     string    `gorm:"not null" json:"grader_id"` // The instructor's/TA's UserID
+	Score        int       `gorm:"not null" json:"score"`     // e.g. 85.5 out of 100
+	LetterGrade  string    `json:"letter_grade,omitempty"`    // e.g. "A", "12", "Pass"
 	Feedback     string    `json:"feedback,omitempty"`
 	GradedAt     time.Time `json:"graded_at"`
 }

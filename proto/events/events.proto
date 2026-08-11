@@ -6,15 +6,15 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "osbourne.local/proto/gen/events/events;events";
 
-// Generisk fælles event-envelope til RabbitMQ
+// Generic shared event-envelope for RabbitMQ
 message EventEnvelope {
   string id = 1;
-  string type = 2; // fx "student.created"
+  string type = 2; // e.g. "student.created"
   google.protobuf.Timestamp timestamp = 3;
-  bytes payload = 4; // Selve det binære Protobuf event
+  bytes payload = 4; // The binary Protobuf event itself
 }
 
-// Domænespecifikke events
+// Domain-specific events
 message StudentCreatedEvent {
   string student_id = 1;
   string email = 2;

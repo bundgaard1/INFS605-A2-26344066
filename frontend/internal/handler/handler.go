@@ -44,7 +44,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, staticFiles fs.FS) {
 	mux.Handle("/api/courses/enroll", h.Authenticate(http.HandlerFunc(h.HandleEnrollCourse)))
 }
 
-// Middleware: Henter brugeren én gang til context
+// Middleware: Fetches the user once into the context
 func (h *Handler) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("id")
@@ -57,7 +57,7 @@ func (h *Handler) Authenticate(next http.Handler) http.Handler {
 			&profile.ProfileRequest{UserId: userID},
 		)
 
-		user := domain.User{Name: "Gæst", Role: "Ukendt"}
+		user := domain.User{Name: "Guest", Role: "Unknown"}
 		if err == nil {
 			user = domain.User{
 				ID:   res.GetId(),
@@ -65,7 +65,7 @@ func (h *Handler) Authenticate(next http.Handler) http.Handler {
 				Role: res.GetRole(),
 			}
 		} else {
-			log.Printf("gRPC Hentning af bruger fejlede: %v", err)
+			log.Printf("gRPC user fetch failed: %v", err)
 		}
 
 		ctx := context.WithValue(r.Context(), userKey, user)
@@ -77,5 +77,5 @@ func UserFromContext(ctx context.Context) domain.User {
 	if u, ok := ctx.Value(userKey).(domain.User); ok {
 		return u
 	}
-	return domain.User{Name: "Gæst", Role: "Ukendt"}
+	return domain.User{Name: "Guest", Role: "Unknown"}
 }

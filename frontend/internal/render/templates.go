@@ -18,7 +18,7 @@ func New(files fs.FS) (*Renderer, error) {
 	for _, page := range pages {
 		tmpl, err := template.ParseFS(files, "templates/layouts/base.html", fmt.Sprintf("templates/%s.html", page))
 		if err != nil {
-			return nil, fmt.Errorf("fejl ved parsing af %s template: %w", page, err)
+			return nil, fmt.Errorf("error parsing %s template: %w", page, err)
 		}
 		tmpls[page] = tmpl
 	}
@@ -29,7 +29,7 @@ func New(files fs.FS) (*Renderer, error) {
 func (r *Renderer) Render(w io.Writer, name string, data any) error {
 	tmpl, ok := r.tmpls[name]
 	if !ok {
-		return fmt.Errorf("template %s findes ikke", name)
+		return fmt.Errorf("template %s not found", name)
 	}
 	return tmpl.ExecuteTemplate(w, "base", data)
 }

@@ -15,7 +15,7 @@
         {{ end }}
         </ul>
     {{ else }}
-        <p>Ingen kurser at vise.</p>
+        <p>No courses to display.</p>
     {{ end }}
 </section>
 <script>
@@ -32,9 +32,9 @@ async function enroll(courseId) {
 
     if (response.ok) {
         const data = await response.json();
-        alert('Tilmeldt: ' + data.success);
+        alert('Enrolled: ' + data.success);
     } else {
-        alert('Der skete en fejl!');
+        alert('Something went wrong!');
     }
 }
 </script>

@@ -8,19 +8,19 @@ import (
 )
 
 func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
-	// 1. Læs HTTP request fra JS/HTMX
+	// 1. Read HTTP request from JS/HTMX
 	var req struct {
 		CourseID string `json:"course_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Ugyldig request body", http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// 2. Hent den autentificerede bruger (f.eks. fra session/JWT cookie)
+	// 2. Get the authenticated user (e.g. from session/JWT cookie)
 	userID := UserFromContext(r.Context()).ID
 
-	// 3. Kalder gRPC servicen internt i Go
+	// 3. Call the gRPC service internally in Go
 	resp, err := h.courseCatalogueClient.Client.EnrollUser(r.Context(),
 		&coursecatalogue.EnrollUserRequest{
 			UserId:   userID,
@@ -28,11 +28,11 @@ func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 		})
 
 	if err != nil {
-		http.Error(w, "Kunne ikke gennemføre tilmelding", http.StatusInternalServerError)
+		http.Error(w, "Could not complete enrollment", http.StatusInternalServerError)
 		return
 	}
 
-	// 4. Send ren HTTP/JSON tilbage til browseren
+	// 4. Send clean HTTP/JSON back to the browser
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
 		"success": resp.GetSuccess(),

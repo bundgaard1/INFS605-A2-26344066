@@ -1,17 +1,17 @@
 .PHONY: tools generate dev
 
-# Tjekker om buf er installeret, ellers installeres den automatisk
+# Checks if buf is installed, otherwise it is installed automatically
 tools:
-	@which buf > /dev/null || (echo "Installerer Buf..." && go install github.com/bufbuild/buf/cmd/buf@latest)
+	@which buf > /dev/null || (echo "Installing Buf..." && go install github.com/bufbuild/buf/cmd/buf@latest)
 
-# Kører tool-tjek og genererer derefter kode
+# Runs the tool check and then generates code
 generate: tools
-	@echo "Genererer Protobuf & gRPC kode..."
+	@echo "Generating Protobuf & gRPC code..."
 	@cd proto && buf generate
 
 dev: generate
 	@cd frontend && go run cmd/main.go
 
 clean:
-	@echo "Rydder op i genererede filer..."
+	@echo "Cleaning up generated files..."
 	@rm -rf **/gen

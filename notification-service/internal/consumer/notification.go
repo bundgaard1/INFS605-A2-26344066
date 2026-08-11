@@ -38,7 +38,7 @@ func NewNotificationConsumer(conn *rabbitmq.Conn, svc *service.NotificationServi
 }
 
 func (c *NotificationConsumer) Start(ctx context.Context) error {
-	log.Println("[CONSUMER] NotificationConsumer lytter på RabbitMQ...")
+	log.Println("[CONSUMER] NotificationConsumer listening on RabbitMQ...")
 
 	err := c.rmq.Run(func(d rabbitmq.Delivery) rabbitmq.Action {
 		return c.processDelivery(ctx, d.Body)
@@ -68,7 +68,7 @@ func (c *NotificationConsumer) processDelivery(ctx context.Context, body []byte)
 			return rabbitmq.NackDiscard
 		}
 
-		// Kalder forretningslogik
+		// Call the business logic
 		err := c.svc.CreateNotification(ctx,
 			event.GetStudentId(),
 			"Welcome to Osbourne!",

@@ -25,7 +25,7 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		log.Fatalf("Kunne ikke lytte på port :%s: %v", port, err)
+		log.Fatalf("Could not listen on port :%s: %v", port, err)
 	}
 
 	dbPath := os.Getenv("DB_PATH")
@@ -37,7 +37,7 @@ func main() {
 
 	db, err := database.NewGORMDB(dbPath)
 	if err != nil {
-		log.Fatalf("DB fejl: %v", err)
+		log.Fatalf("Database error: %v", err)
 	}
 
 	database.SeedData(db)
@@ -50,9 +50,9 @@ func main() {
 	profile.RegisterProfileServiceServer(grpcServer, profileGrpcServer)
 
 	go func() {
-		log.Printf("profile-service (gRPC) kører på port :%s...", port)
+		log.Printf("profile-service (gRPC) running on port :%s...", port)
 		if err := grpcServer.Serve(lis); err != nil && err != grpc.ErrServerStopped {
-			log.Fatalf("Fejl under afvikling af gRPC server: %v", err)
+			log.Fatalf("Error while running gRPC server: %v", err)
 		}
 	}()
 
@@ -61,7 +61,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	log.Println("Modtog nedlukningssignal. Lukker pænt...")
+	log.Println("Received shutdown signal. Shutting down gracefully...")
 
 	done := make(chan struct{})
 	go func() {
@@ -71,9 +71,9 @@ func main() {
 
 	select {
 	case <-done:
-		log.Println("gRPC server lukket pænt.")
+		log.Println("gRPC server shut down gracefully.")
 	case <-time.After(5 * time.Second):
-		log.Println("Tidsfrist overskredet - tvinger nedlukning.")
+		log.Println("Timeout exceeded - forcing shutdown.")
 		grpcServer.Stop()
 	}
 }

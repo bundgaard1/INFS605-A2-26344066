@@ -18,7 +18,7 @@ func NewGORMDB(dbPath string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("Could not initialize GORM: %w", err)
 	}
 
-	// Aktiver WAL via en direkte PRAGMA i stedet for query string
+	// Enable WAL via a direct PRAGMA instead of a query string
 	db.Exec("PRAGMA journal_mode=WAL;")
 
 	err = db.AutoMigrate(&domain.Course{})

@@ -34,20 +34,20 @@ func NewApp(cfg Config) (*App, error) {
 	// 1. gRPC Clients
 	pClient, err := grpcclient.NewProfileClient(cfg.ProfileServiceAddr)
 	if err != nil {
-		return nil, fmt.Errorf("profile client fejl: %w", err)
+		return nil, fmt.Errorf("failed to create profile client: %w", err)
 	}
 
 	nClient, err := grpcclient.NewNotificationClient(cfg.NotificationServiceAddr)
 	if err != nil {
 		pClient.Close()
-		return nil, fmt.Errorf("notification client fejl: %w", err)
+		return nil, fmt.Errorf("failed to create notification client: %w", err)
 	}
 
 	ccClient, err := grpcclient.NewCourseCatalogueClient(cfg.CourseCatalogueServiceAddr)
 	if err != nil {
 		pClient.Close()
 		nClient.Close()
-		return nil, fmt.Errorf("course catalogue client fejl: %w", err)
+		return nil, fmt.Errorf("failed to create course catalogue client: %w", err)
 	}
 
 	cContentClient, err := grpcclient.NewCourseContentClient(cfg.CourseContentServiceAddr)
@@ -55,7 +55,7 @@ func NewApp(cfg Config) (*App, error) {
 		pClient.Close()
 		nClient.Close()
 		ccClient.Close()
-		return nil, fmt.Errorf("course content client fejl: %w", err)
+		return nil, fmt.Errorf("failed to create course content client: %w", err)
 	}
 
 	// 2. Render & Handlers
@@ -65,7 +65,7 @@ func NewApp(cfg Config) (*App, error) {
 		nClient.Close()
 		ccClient.Close()
 		cContentClient.Close()
-		return nil, fmt.Errorf("renderer fejl: %w", err)
+		return nil, fmt.Errorf("failed to create renderer: %w", err)
 	}
 
 	h := handler.New(renderer, pClient, ccClient, nClient)
@@ -88,7 +88,7 @@ func NewApp(cfg Config) (*App, error) {
 }
 
 func (a *App) Run() error {
-	log.Printf("Frontend Web Service kører på port :%s...", a.cfg.Port)
+	log.Printf("Frontend Web Service running on port :%s...", a.cfg.Port)
 	if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

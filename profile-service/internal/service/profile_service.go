@@ -11,12 +11,12 @@ type ProfileService struct {
 	repo repository.ProfileRepository
 }
 
-// Injecter repositoriet
+// Injects the repository
 func NewProfileService(repo repository.ProfileRepository) *ProfileService {
 	return &ProfileService{repo: repo}
 }
 
 func (s *ProfileService) GetProfile(ctx context.Context, id string) (*domain.UserProfile, error) {
-	// Kald databaselaget
+	// Call the database layer
 	return s.repo.GetByID(ctx, id)
 }

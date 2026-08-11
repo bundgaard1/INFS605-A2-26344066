@@ -9,9 +9,9 @@ const (
 	RoleTeacher UserRole = "Teacher"
 )
 
-// UserProfile indeholder brugerens personlige stamdata
+// UserProfile contains the user's personal master data
 type UserProfile struct {
-	ID        string    `gorm:"primaryKey" json:"id"` // Samme ID som UserAccount.ID
+	ID        string    `gorm:"primaryKey" json:"id"` // Same ID as UserAccount.ID
 	Name      string    `gorm:"not null" json:"name"`
 	Role      UserRole  `gorm:"type:string;default:'Student';not null" json:"role"`
 	CreatedAt time.Time `json:"created_at"`

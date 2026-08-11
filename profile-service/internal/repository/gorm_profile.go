@@ -25,9 +25,9 @@ func (r *GORMProfileRepository) GetByID(ctx context.Context, id string) (*domain
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("studerende med id %s blev ikke fundet", id)
+			return nil, fmt.Errorf("student with id %s was not found", id)
 		}
-		return nil, fmt.Errorf("databasefejl: %w", err)
+		return nil, fmt.Errorf("database error: %w", err)
 	}
 
 	return &profileEntity, nil

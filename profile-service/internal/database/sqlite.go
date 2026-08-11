@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	// Brug den officielle GORM dialekt-adapter fra glebarez:
+	// Use the official GORM dialect adapter from glebarez:
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
@@ -25,14 +25,14 @@ func NewGORMDB(dbPath string) (*gorm.DB, error) {
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kunne ikke forbinde til SQLite via GORM: %w", err)
+		return nil, fmt.Errorf("could not connect to SQLite via GORM: %w", err)
 	}
 
 	db.Exec("PRAGMA journal_mode=WAL;")
 
 	err = db.AutoMigrate(&domain.UserProfile{})
 	if err != nil {
-		return nil, fmt.Errorf("fejl ved AutoMigrate: %w", err)
+		return nil, fmt.Errorf("error during AutoMigrate: %w", err)
 	}
 
 	return db, nil

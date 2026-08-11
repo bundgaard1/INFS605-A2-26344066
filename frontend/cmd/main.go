@@ -22,12 +22,12 @@ func main() {
 
 	application, err := app.NewApp(cfg)
 	if err != nil {
-		log.Fatalf("Kunne ikke oprette frontend app: %v", err)
+		log.Fatalf("Could not create frontend app: %v", err)
 	}
 
 	go func() {
 		if err := application.Run(); err != nil {
-			log.Fatalf("Fejl under afvikling af frontend: %v", err)
+			log.Fatalf("Error while running frontend: %v", err)
 		}
 	}()
 
@@ -35,7 +35,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	log.Println("Shutdown signal modtaget...")
+	log.Println("Shutdown signal received...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

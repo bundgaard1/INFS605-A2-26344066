@@ -1,7 +1,7 @@
 # ==========================================
 # Go Binaries & Compiles
 # ==========================================
-# Eksplicitte binære filer produceret af go build
+# Explicit binary files produced by go build
 /frontend/frontend
 /student-service/student-service
 *.exe
@@ -12,26 +12,26 @@
 *.test
 *.out
 
-# Go vendor mappen (hvis du mod forventning bruger vendor)
+# Go vendor directory (if you unexpectedly use vendoring)
 /vendor/
 
-# Air (Live reload) midlertidige filer
+# Air (Live reload) temporary files
 /tmp/
 
 # ==========================================
-# Protobuf / Buf (Valgfrit)
+# Protobuf / Buf (Optional)
 # ==========================================
-# Hvis du vil tvinge alle til at køre `make generate` lokalt,
-# kan du fjerne udkommenteringen af linjen herunder:
+# If you want to force everyone to run `make generate` locally,
+# you can uncomment the line below:
 **/gen/
 
-# Buf cache og lokal tilstand
+# Buf cache and local state
 .buf/
 
 # ==========================================
 # Environment Variables & Secrets
 # ==========================================
-# Følsomme oplysninger og lokale konfigurationer
+# Sensitive information and local configurations
 .env
 .env.local
 *.pem
