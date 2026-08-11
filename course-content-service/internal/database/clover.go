@@ -8,8 +8,9 @@ import (
 	"osbourne.local/course-content-service/internal/domain"
 )
 
-func NewCloverDB(connectionString string) (*c.DB, error) {
-	db, err := c.Open(connectionString)
+func NewCloverDB(dbDir string) (*c.DB, error) {
+
+	db, err := c.Open(dbDir)
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -18,7 +17,6 @@ import (
 )
 
 func main() {
-	fmt.Println("hej")
 
 	port := "50054"
 	if port == "" {
@@ -30,9 +28,12 @@ func main() {
 		log.Fatalf("Could not listen on port %s: %v", port, err)
 	}
 
-	connString := "contentdb"
+	dbDir := "content-db"
+	if envDbDir := os.Getenv("NOSQL_PATH"); envDbDir != "" {
+		dbDir = envDbDir
+	}
 
-	cloverdb, err := database.NewCloverDB(connString)
+	cloverdb, err := database.NewCloverDB(dbDir)
 	if err != nil {
 		log.Fatalf("Failed to connect to CloverDB: %v", err)
 	}

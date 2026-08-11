@@ -18,6 +18,7 @@ type Config struct {
 	ProfileServiceAddr         string
 	NotificationServiceAddr    string
 	CourseCatalogueServiceAddr string
+	CourseContentServiceAddr   string
 }
 
 type App struct {
@@ -25,6 +26,7 @@ type App struct {
 	profileClient         *grpcclient.ProfileClient
 	notificationClient    *grpcclient.NotificationClient
 	courseCatalogueClient *grpcclient.CourseCatalogueClient
+	courseContentClient   *grpcclient.CourseContentClient
 	server                *http.Server
 }
 
@@ -48,12 +50,21 @@ func NewApp(cfg Config) (*App, error) {
 		return nil, fmt.Errorf("course catalogue client fejl: %w", err)
 	}
 
+	cContentClient, err := grpcclient.NewCourseContentClient(cfg.CourseContentServiceAddr)
+	if err != nil {
+		pClient.Close()
+		nClient.Close()
+		ccClient.Close()
+		return nil, fmt.Errorf("course content client fejl: %w", err)
+	}
+
 	// 2. Render & Handlers
 	renderer, err := render.New(ui.Files)
 	if err != nil {
 		pClient.Close()
 		nClient.Close()
 		ccClient.Close()
+		cContentClient.Close()
 		return nil, fmt.Errorf("renderer fejl: %w", err)
 	}
 
@@ -71,6 +82,7 @@ func NewApp(cfg Config) (*App, error) {
 		profileClient:         pClient,
 		notificationClient:    nClient,
 		courseCatalogueClient: ccClient,
+		courseContentClient:   cContentClient,
 		server:                server,
 	}, nil
 }

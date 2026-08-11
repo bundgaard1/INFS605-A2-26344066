@@ -6,6 +6,7 @@ volumes:
   profile-data:
   notification-data:
   course-catalogue-data:
+  course-content-data:
 
 services:
   api-gateway:
@@ -100,6 +101,25 @@ services:
       - osbourne-net
     restart: unless-stopped
 
+  
+  course-content-service:
+    build:
+      context: ./course-content-service
+      dockerfile: Dockerfile
+    container_name: osbourne-course-content-service
+    environment:
+      - PORT=50054
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - NOSQL_PATH=/app/data
+    volumes: 
+      - course-content-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - osbourne-net
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -112,10 +132,14 @@ services:
       - PROFILE_SERVICE_ADDR=dns:///profile-service:50051
       - NOTIFICATION_SERVICE_ADDR=dns:///notification-service:50052
       - COURSE_CATALOGUE_SERVICE_ADDR=dns:///course-catalogue-service:50053
+      - COURSE_CONTENT_SERVICE_ADDR=dns:///course-content-service:50054
     depends_on:
       - profile-service
       - notification-service
       - course-catalogue-service
+      - course-content-service
     networks:
       - osbourne-net
     restart: unless-stopped
+
+  

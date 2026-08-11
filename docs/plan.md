@@ -45,7 +45,7 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 
 ---
 
-## [ ] Phase 2: Asynchronous Messaging & In-App Notifications (Service #2)
+## [x] Phase 2: Asynchronous Messaging & In-App Notifications (Service #2)
 
 **Mål:** Når en karakter gives eller en student oprettes, oprettes der automatisk en in-app notifikation via RabbitMQ.
 
@@ -64,47 +64,128 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 
 * **Test:** Send en test-event til RabbitMQ og verificer via gRPC, at notifikationen kan hentes frem.
 
-### [ ] Step 2.3: Event Publishing fra Services
+---
 
-* **Handling:** Udvid services til at udgive events på RabbitMQ ved ændringer.
-* **Integrationstest:**
-1. Udfør en handling i systemet (f.eks. opret student).
-2. Tjek **RabbitMQ UI** (beskeden blev sendt).
-3. Tjek **Notification Service Logs & DB** (notifikationen er gemt og klar til at blive vist ved login).
+## Phase 3: Core Domain Expansion
+
+### [ ] Step 3.2: Course Content Service (Service #4 - NoSQL / CloverDB)
+
+> **Note:** Siden du har valgt **CloverDB** (embedded NoSQL), kører databasen lokalt i din Go-proces og gemmer i `./data/nosql` i stedet for en MongoDB-container.
+
+#### **1. DB & Storage Setup**
+
+* [ ] **CloverDB Initialization:** Opret og initialiser CloverDB i `internal/repository/clover.go` og opret collectionen `"modules"`.
+* [ ] **Domain Models:** Definer `domain.Module` og `domain.File` med tilhørende `json:"_id"` og `json:"..."` tags.
+* [ ] **Seed Data:** Opret en `SeedCloverData(db)` funktion, der indsætter test-moduler og fil-arrays, hvis collectionen er tom.
+* [ ] **Docker Volume:** Verificer at `./course-catalogue-service/data:/app/data` er mounted i `docker-compose.yml`, så NoSQL-dataene overlever container-genstarter.
+
+#### **2. Service & Repository-lag**
+
+* [ ] **Clover Repository Implementering:**
+* [ ] `GetModulesByCourseID(ctx, courseID)` $\rightarrow$ Udfører `query.NewQuery("modules").Where(query.Field("course_id").IsEq(courseID))` og unmarshaller til `[]*domain.Module`.
+* [ ] `SaveModule(ctx, module)` $\rightarrow$ Bruger `document.NewDocumentOf(module)` og indsætter/opdaterer i CloverDB.
+
+
+* [ ] **Service Layer Business Logic:** Opret `ContentService` der binder repository sammen med eventuelle valideringer (fx tjek om kurset findes via gRPC-kald til SQL-delen).
+
+#### **3. gRPC Server Setup**
+
+* [ ] **Proto Specifikation:** Definer `content.proto` med beskeder som `Module`, `File`, `GetCourseContentRequest` og `GetCourseContentResponse`.
+* [ ] **gRPC Handler Implementation:** Implementer `GetCourseContent` handleren, som kalder `ContentService` og mapper `domain.Module` og `domain.File` over til Proto structs.
+* [ ] **Server Registration:** Registrer `ContentServer` i din `main.go`.
+
+#### **4. Frontend / BFF Integration & Test**
+
+* [ ] **BFF Client:** Tilføj `ContentClient` til din Go Frontend BFF og konfigurer `COURSE_CONTENT_SERVICE_ADDR`.
+* [ ] **HTTP Handler:** Opret `/courses/{id}/content` endpoint i frontenden.
+* [ ] **Template / UI View:** Render modulernes titler, beskedtekster og fil-links (`<a href="...">filename.pdf</a>`) i HTML-skabelonen.
+* [ ] **Verificering:** Åbn et kursus i frontenden og bekræft, at moduler og filer hentes ud i ét enkelt læsekald via gRPC fra CloverDB.
 
 ---
 
-## [ ] Phase 3: Core Domain Expansion (Services #3, #4, #5 & #6)
-
-**Mål:** Tilføj resten af universitetets domæneservices og introducer NoSQL til kursusindhold.
-
-### [x] Step 3.1: Course Catalogue Service (Service #3 - SQL)
-
-* **Handling:** Byg `catalogue-service` med ansvar for fagkataloget og **Enrollments** (M2M relation mellem `student_id` og `course_id`).
-* **Implementering:** Eksponer gRPC endpoints: `GetCourse`, `ListCourses`, `EnrollStudent`.
-* **Test:** Verificer, at tilmeldinger gemmes korrekt uden direkte databaselink til Profile DB.
-
-### [ ] Step 3.2: Course Content Service (Service #4 - NoSQL / MongoDB)
-
-* **Handling:** Byg `content-service` med **MongoDB** til opbevaring af fleksible lektionsblokke (tekst, video-links, PDF'er).
-* **Implementering:** Gem hele moduler og deres indholdsblokke som dokumenter i MongoDB.
-* **Test:** Hent et modul ud på ét enkelt databaseopslag og verificer, at dokument-strukturen returneres korrekt via gRPC.
-
 ### [ ] Step 3.3: Assignment & Grading Service (Service #5 - SQL)
 
-* **Handling:** Byg `grading-service` til håndtering af opgaveafleveringer, deadlines og karakterer.
-* **Implementering:** Når en karakter gemmes via `GradeSubmission`, publiceres en `grade.published` event til RabbitMQ.
-* **Test:** Giv en karakter $\rightarrow$ Verificer at `notification-service` modtager eventen og opretter en in-app notifikation.
+#### **1. Database Setup**
 
-### [ ] Step 3.4: Authentication Service (Service #6 - Security Boundary)
+* [ ] **GORM Schema / Migrations:** Opret tabeller for `assignments` (`id`, `course_id`, `title`, `due_date`) og `submissions` (`id`, `assignment_id`, `student_id`, `grade`, `submitted_at`).
+* [ ] **Database Seeding:** Seed et par test-opgaver til eksisterende kurser.
 
-* **Handling:** Byg `auth-service` med ansvar for `UserAccount` (Email, PasswordHash) og JWT-udstedelse.
-* **Implementering:**
-1. Konfigurer Gateway/BFF til at kræve `Authorization: Bearer <JWT>` på beskyttede ruter.
-2. Sørg for, at `user_id` fra JWT videreføres i gRPC Metadata til de underliggende services.
+#### **2. Service & Repository-lag**
+
+* [ ] **Grading Repository:** Implementer `CreateSubmission` og `UpdateGrade`.
+* [ ] **Service Layer & Event Triggering:**
+* [ ] I `GradeSubmission()` gemmes karakteren i SQL-databasen.
+* [ ] Så snart DB-opdateringen lykkes, udgives en `grade.published` event på RabbitMQ med `{student_id, course_id, grade}`.
 
 
-* **Test:** Test adgang uden token ($\rightarrow 401$) vs. med gyldigt JWT ($\rightarrow 200$).
+
+#### **3. gRPC Server Setup**
+
+* [ ] **Proto Specifikation:** Definer `grading.proto` med `SubmitAssignment` og `GradeSubmission` RPC-kald.
+* [ ] **gRPC Handler:** Opret server-implementering og kobl den på gRPC-porten (f.eks. `:50054`).
+
+#### **4. Frontend / BFF Integration & Test**
+
+* [ ] **UI Form:** Opret en simpel side/form i frontenden, hvor en underviser kan vælge en studerende og indtaste en karakter.
+* [ ] **Verificering af Event Flow:**
+1. Underviser trykker "Gem Karakter" $\rightarrow$ Frontend kalder `/api/grades`.
+2. Frontend kalder `grading-service` via gRPC.
+3. `grading-service` gemmer i sin DB og sender `grade.published` event på RabbitMQ.
+4. `notification-service` opfanger eventet og gemmer en notifikation ("Du har modtaget karakteren A i CS101").
+5. Den studerende logger ind og ser notifikationen på sit dashboard.
+
+---
+
+### [ ] Step 3.4: Event Publishing fra Services
+
+#### **1. Database & Domain Event Setup**
+
+* [ ] **Domain Events Definition:** Opret en fælles struct/proto for events (f.eks. `StudentCreatedEvent`, `EnrollmentCreatedEvent`).
+* [ ] **RabbitMQ Producer Wrapper:** Byg en genanvendelig `publisher.go` i din service, som håndterer forbindelse, kanaler og genforbindelse til RabbitMQ.
+* [ ] **JSON/Protobuf Serialization:** Konverter dit domæne-event til JSON eller Protobuf før det udgives på switchen (exchange).
+
+#### **2. Service-lag Integration**
+
+* [ ] **Publish ved DB mutation:** Kald `publisher.Publish("student.created", payload)` lige efter en succesfuld SQL-transaktion (f.eks. i `CreateProfile`).
+* [ ] **Error Handling / Fallback:** Sørg for at logge en klar fejl, hvis DB-ændringen lykkedes, men RabbitMQ-kaldet fejler (eller implementer Outbox pattern, hvis du vil være ekstra grundig).
+
+#### **3. Server & Consumer Setup**
+
+* [ ] **Notification Consumer Setup:** I `notification-service`, lyt på kørselstidspunktet på RabbitMQ-køen `notification-queue` bundet til de relevante routing keys (`*.created`, `*.published`).
+* [ ] **Consumer Handler:** Opret en ny notifikation i Notification DB, når en besked modtages.
+
+#### **4. Frontend Integration & Test**
+
+* [ ] **UI Trigger:** Opret en ny studerende eller tilmeld et kursus via Frontend.
+* [ ] **RabbitMQ Dashboard Check:** Tjek http://localhost:15672 og verificer, at beskeden tæller op under `Publish` rate på køen.
+* [ ] **Notification Badge i Frontend:** Åbn notifications-siden i frontenden og verificer, at den nyligt oprettede notifikation vises for brugeren.
+
+---
+
+### [ ] Step 3.5: Authentication Service (Service #6 - Security Boundary)
+
+#### **1. Database Setup**
+
+* [ ] **Auth Schema / Migrations:** Opret `user_accounts` tabel med `id`, `email`, `password_hash`, og `role` (`student`, `teacher`, `admin`).
+* [ ] **Crypto Setup:** Implementer `bcrypt` til sikker hashing og sammenligning af adgangskoder.
+
+#### **2. Service & JWT Implementation**
+
+* [ ] **JWT Generator:** Opret en hjælpefunktion til at udstede og signere JWT tokens (indeholdende `user_id`, `email`, `role` og `exp`).
+* [ ] **Auth Service Methods:** Implementer `Register` og `Login` metoder i servicelaget.
+
+#### **3. gRPC Server & Gateway Interceptors**
+
+* [ ] **Proto Specifikation:** Definer `auth.proto` med `Login` og `ValidateToken` RPCs.
+* [ ] **gRPC Auth Interceptor:** Opret en gRPC Interceptor på tværs af microservices, der læser JWT tokenet ud af gRPC Context Metadata (`authorization: bearer <token>`) og verificerer signatur.
+
+#### **4. Frontend / BFF Integration & Test**
+
+* [ ] **Session / Cookie Handling:** Når brugeren logger ind på `/login` i Go Frontenden, kaldes `auth-service`. Ved succes gemmes JWT-tokenet i en sikker, `HttpOnly` cookie i browseren.
+* [ ] **BFF Middleware (`h.Authenticate`):** Opdater din `Authenticate` middleware i Go Frontenden til at læse cookien og vedhæfte JWT-tokenet som gRPC Metadata på *alle* udgående microservice-kald.
+* [ ] **Test Scenarier:**
+* [ ] Test adgang til `/dashboard` uden login-cookie $\rightarrow$ Omdirigeres til `/login` (eller returnerer HTTP `401`).
+* [ ] Test adgang med gyldigt login $\rightarrow$ gRPC-kaldene modtager `user_id` direkte fra gRPC metadata og returnerer den korrekte brugers data (`200 OK`).
 
 ---
 
@@ -124,8 +205,6 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 2. **Run Instructions:** `docker compose up --build`.
 3. **API Collection:** En `.http` fil eller Postman collection til test af alle væsentlige flow.
 
-
-
 ---
 
 ## [ ] Phase 5: High Availability & Instance Scaling
@@ -140,7 +219,6 @@ Planen er fortsat bygget op omkring en **Vertical Slice strategi**: Vi færdigg�
 docker compose up -d --scale profile-service=3 --scale notification-service=2
 
 ```
-
 
 * **Test:** Kør `docker compose ps` og bekræft, at alle instanser kører på det fælles Docker-netværk.
 

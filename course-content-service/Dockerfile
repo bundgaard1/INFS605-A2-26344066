@@ -24,7 +24,8 @@ WORKDIR /app
 
 COPY --from=builder /course-content-service .
 
-RUN chown appuser:appgroup /app/course-content-service
+RUN mkdir -p /app/data && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 
