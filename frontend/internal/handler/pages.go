@@ -17,7 +17,7 @@ func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 
 	currentUser := UserFromContext(r.Context())
 
-	res, err := h.courseCatalogueClient.Client.ListEnrolledCourses(
+	res, err := h.clients.CourseCatalogue.Client.ListEnrolledCourses(
 		r.Context(),
 		&coursecatalogue.ListEnrolledCoursesRequest{
 			UserId: currentUser.ID,
@@ -65,7 +65,7 @@ func (h *Handler) HandleProfile(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleNotifications(w http.ResponseWriter, r *http.Request) {
 	user := UserFromContext(r.Context())
 
-	res, err := h.notificationClient.Client.GetUserNotifications(
+	res, err := h.clients.Notification.Client.GetUserNotifications(
 		r.Context(),
 		&notification.NotificationsRequest{UserId: user.ID},
 	)
@@ -96,7 +96,7 @@ func (h *Handler) HandleNotifications(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleCourseCatalog(w http.ResponseWriter, r *http.Request) {
 	user := UserFromContext(r.Context())
 
-	res, err := h.courseCatalogueClient.Client.ListCourses(
+	res, err := h.clients.CourseCatalogue.Client.ListCourses(
 		r.Context(),
 		&coursecatalogue.ListCoursesRequest{
 			Page:     1,
@@ -131,7 +131,7 @@ func (h *Handler) HandleCoursePage(w http.ResponseWriter, r *http.Request) {
 	user := UserFromContext(r.Context())
 	courseID := r.PathValue("id")
 
-	res, err := h.courseCatalogueClient.Client.GetCourse(
+	res, err := h.clients.CourseCatalogue.Client.GetCourse(
 		r.Context(),
 		&coursecatalogue.GetCourseRequest{CourseId: courseID},
 	)

@@ -18,6 +18,7 @@ func main() {
 		NotificationServiceAddr:    getEnv("NOTIFICATION_SERVICE_ADDR", "dns:///notification-service:50052"),
 		CourseCatalogueServiceAddr: getEnv("COURSE_CATALOGUE_SERVICE_ADDR", "dns:///course-catalogue-service:50053"),
 		CourseContentServiceAddr:   getEnv("COURSE_CONTENT_SERVICE_ADDR", "dns:///course-content-service:50054"),
+		AssignmentServiceAddr:      getEnv("ASSIGNMENT_SERVICE_ADDR", "dns:///assignment-service:50055"),
 	}
 
 	application, err := app.NewApp(cfg)

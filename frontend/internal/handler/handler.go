@@ -17,18 +17,14 @@ type contextKey string
 const userKey contextKey = "currentUser"
 
 type Handler struct {
-	renderer              *render.Renderer
-	profileClient         *grpcclient.ProfileClient
-	courseCatalogueClient *grpcclient.CourseCatalogueClient
-	notificationClient    *grpcclient.NotificationClient
+	renderer *render.Renderer
+	clients  *grpcclient.Clients
 }
 
-func New(renderer *render.Renderer, pClient *grpcclient.ProfileClient, ccClient *grpcclient.CourseCatalogueClient, nClient *grpcclient.NotificationClient) *Handler {
+func New(renderer *render.Renderer, clients *grpcclient.Clients) *Handler {
 	return &Handler{
-		renderer:              renderer,
-		profileClient:         pClient,
-		courseCatalogueClient: ccClient,
-		notificationClient:    nClient,
+		renderer: renderer,
+		clients:  clients,
 	}
 }
 
@@ -52,7 +48,7 @@ func (h *Handler) Authenticate(next http.Handler) http.Handler {
 			userID = "12345"
 		}
 
-		res, err := h.profileClient.Client.GetUserProfile(
+		res, err := h.clients.Profile.Client.GetUserProfile(
 			r.Context(),
 			&profile.ProfileRequest{UserId: userID},
 		)

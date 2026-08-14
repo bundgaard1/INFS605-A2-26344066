@@ -21,7 +21,7 @@ func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 	userID := UserFromContext(r.Context()).ID
 
 	// 3. Call the gRPC service internally in Go
-	resp, err := h.courseCatalogueClient.Client.EnrollUser(r.Context(),
+	resp, err := h.clients.CourseCatalogue.Client.EnrollUser(r.Context(),
 		&coursecatalogue.EnrollUserRequest{
 			UserId:   userID,
 			CourseId: req.CourseID,
