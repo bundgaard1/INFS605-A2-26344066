@@ -1,10 +1,10 @@
-go 1.26.0
-
+go 1.26.5
 
 use (
+	./assignment-service
+	./course-catalogue-service
+	./course-content-service
 	./frontend
 	./notification-service
 	./profile-service
-	./course-catalogue-service
-	./course-content-service
 )
