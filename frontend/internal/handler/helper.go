@@ -33,3 +33,19 @@ func toDomainNotification(n *notification.Notification) domain.Notification {
 		Timestamp: n.GetTimestamp().AsTime(),
 	}
 }
+
+func toDomainCourses(courses []*coursecatalogue.Course) []domain.Course {
+	result := make([]domain.Course, 0, len(courses))
+	for _, c := range courses {
+		result = append(result, toDomainCourse(c))
+	}
+	return result
+}
+
+func toDomainNotifications(notifications []*notification.Notification) []domain.Notification {
+	result := make([]domain.Notification, 0, len(notifications))
+	for _, n := range notifications {
+		result = append(result, toDomainNotification(n))
+	}
+	return result
+}

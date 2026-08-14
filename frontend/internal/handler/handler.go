@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	"osbourne.local/frontend/gen/profile"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/internal/domain"
@@ -25,16 +28,28 @@ func New(clients *grpcclient.Clients) *Handler {
 	}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux, staticFiles fs.FS) {
-	mux.Handle("/static/", http.FileServer(http.FS(staticFiles)))
+func (h *Handler) Routes(staticFiles fs.FS) *chi.Mux {
+	r := chi.NewRouter()
 
-	mux.Handle("/", h.Authenticate(http.HandlerFunc(h.HandleDashboard)))
-	mux.Handle("/profile", h.Authenticate(http.HandlerFunc(h.HandleProfile)))
-	mux.Handle("/notifications", h.Authenticate(http.HandlerFunc(h.HandleNotifications)))
-	mux.Handle("/course-catalog", h.Authenticate(http.HandlerFunc(h.HandleCourseCatalog)))
-	mux.Handle("/courses/{id}", h.Authenticate(http.HandlerFunc(h.HandleCoursePage)))
-	// API Endpoints
-	mux.Handle("/api/courses/enroll", h.Authenticate(http.HandlerFunc(h.HandleEnrollCourse)))
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Handle("/static/*", http.FileServer(http.FS(staticFiles)))
+
+	r.Group(func(r chi.Router) {
+		r.Use(h.Authenticate)
+		r.Get("/", h.HandleDashboard)
+		r.Get("/profile", h.HandleProfile)
+		r.Get("/notifications", h.HandleNotifications)
+		r.Get("/course-catalog", h.HandleCourseCatalog)
+		r.Get("/courses/{courseID}", h.HandleCoursePage)
+		r.Route("/api", func(r chi.Router) {
+			r.Post("/courses/enroll", h.HandleEnrollCourse)
+		})
+	})
+
+	return r
 }
 
 // Middleware: Fetches the user once into the context

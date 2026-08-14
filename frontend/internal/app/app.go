@@ -39,15 +39,14 @@ func NewApp(cfg Config) (*App, error) {
 	}
 
 	h := handler.New(clients)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux, ui.Files)
+	router := h.Routes(ui.Files)
 
 	return &App{
 		cfg:     cfg,
 		clients: clients,
 		server: &http.Server{
 			Addr:    ":" + cfg.Port,
-			Handler: mux,
+			Handler: router,
 		},
 	}, nil
 }

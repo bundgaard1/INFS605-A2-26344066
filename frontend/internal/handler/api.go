@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -19,8 +18,6 @@ func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := UserFromContext(r.Context()).ID
-
-	fmt.Println("Trying to enroll user ", userID, " in course ", courseID)
 
 	courseRes, courseErr := h.clients.CourseCatalogue.Client.GetCourse(
 		r.Context(),

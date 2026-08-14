@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
@@ -22,6 +24,9 @@ type fakeCatalogueService struct {
 }
 
 func (f *fakeCatalogueService) GetCourse(_ context.Context, req *coursecatalogue.GetCourseRequest) (*coursecatalogue.GetCourseResponse, error) {
+	if req.GetCourseId() == "nope" {
+		return nil, status.Error(codes.NotFound, "course not found")
+	}
 	return &coursecatalogue.GetCourseResponse{Course: &coursecatalogue.Course{
 		Id:          req.GetCourseId(),
 		Code:        "CS101",
@@ -62,12 +67,70 @@ func newTestServer(t *testing.T) *httptest.Server {
 	t.Cleanup(clients.Close)
 
 	h := New(clients)
-	mux := http.NewServeMux()
-	h.RegisterRoutes(mux, ui.Files)
+	router := h.Routes(ui.Files)
 
-	ts := httptest.NewServer(mux)
+	ts := httptest.NewServer(router)
 	t.Cleanup(ts.Close)
 	return ts
+}
+
+func TestCoursePageNotFound(t *testing.T) {
+	ts := newTestServer(t)
+
+	resp, err := http.Get(ts.URL + "/courses/nope")
+	if err != nil {
+		t.Fatalf("GET: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", resp.StatusCode)
+	}
+}
+
+func TestGRPCToHTTPStatus(t *testing.T) {
+	cases := []struct {
+		name string
+		err  error
+		want int
+	}{
+		{"not found", status.Error(codes.NotFound, "x"), http.StatusNotFound},
+		{"permission denied", status.Error(codes.PermissionDenied, "x"), http.StatusForbidden},
+		{"unauthenticated", status.Error(codes.Unauthenticated, "x"), http.StatusForbidden},
+		{"unavailable", status.Error(codes.Unavailable, "x"), http.StatusServiceUnavailable},
+		{"deadline exceeded", status.Error(codes.DeadlineExceeded, "x"), http.StatusServiceUnavailable},
+		{"unknown default", status.Error(codes.Internal, "x"), http.StatusBadGateway},
+		{"nil error", nil, http.StatusBadGateway},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := grpcToHTTPStatus(tc.err); got != tc.want {
+				t.Errorf("grpcToHTTPStatus(%v) = %d, want %d", tc.err, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestCoursePageParamRoute(t *testing.T) {
+	ts := newTestServer(t)
+
+	resp, err := http.Get(ts.URL + "/courses/c1")
+	if err != nil {
+		t.Fatalf("GET: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+	if !strings.Contains(string(body), "Intro to CS") {
+		t.Errorf("course page missing course data (param not routed): %s", body)
+	}
 }
 
 func TestHtmxStaticServed(t *testing.T) {
