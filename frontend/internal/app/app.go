@@ -19,6 +19,7 @@ type Config struct {
 	NotificationServiceAddr    string
 	CourseCatalogueServiceAddr string
 	CourseContentServiceAddr   string
+	AssignmentServiceAddr      string
 }
 
 type App struct {
@@ -27,7 +28,9 @@ type App struct {
 	notificationClient    *grpcclient.NotificationClient
 	courseCatalogueClient *grpcclient.CourseCatalogueClient
 	courseContentClient   *grpcclient.CourseContentClient
-	server                *http.Server
+	assignmentClient      *grpcclient.AssignmentClient
+
+	server *http.Server
 }
 
 func NewApp(cfg Config) (*App, error) {
@@ -58,6 +61,15 @@ func NewApp(cfg Config) (*App, error) {
 		return nil, fmt.Errorf("failed to create course content client: %w", err)
 	}
 
+	aClient, err := grpcclient.NewAssignmentClient(cfg.AssignmentServiceAddr)
+	if err != nil {
+		pClient.Close()
+		nClient.Close()
+		ccClient.Close()
+		cContentClient.Close()
+		return nil, fmt.Errorf("failed to create assignment client: %w", err)
+	}
+
 	// 2. Render & Handlers
 	renderer, err := render.New(ui.Files)
 	if err != nil {
@@ -65,6 +77,7 @@ func NewApp(cfg Config) (*App, error) {
 		nClient.Close()
 		ccClient.Close()
 		cContentClient.Close()
+		aClient.Close()
 		return nil, fmt.Errorf("failed to create renderer: %w", err)
 	}
 
@@ -83,6 +96,7 @@ func NewApp(cfg Config) (*App, error) {
 		notificationClient:    nClient,
 		courseCatalogueClient: ccClient,
 		courseContentClient:   cContentClient,
+		assignmentClient:      aClient,
 		server:                server,
 	}, nil
 }

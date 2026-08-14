@@ -18,6 +18,9 @@
 # Air (Live reload) temporary files
 /tmp/
 
+# Local service data (databases, uploads)
+**/data/
+
 # ==========================================
 # Protobuf / Buf (Optional)
 # ==========================================

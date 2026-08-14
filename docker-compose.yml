@@ -7,6 +7,7 @@ volumes:
   notification-data:
   course-catalogue-data:
   course-content-data:
+  assignment-data:
 
 services:
   api-gateway:
@@ -113,6 +114,25 @@ services:
       - NOSQL_PATH=/app/data
     volumes: 
       - course-content-data:/app/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - osbourne-net
+    restart: unless-stopped
+
+  assignment-service:
+    build:
+      context: ./assignment-service
+      dockerfile: Dockerfile
+    container_name: osbourne-assignment-service
+    environment:
+      - PORT=50055
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DB_PATH=/app/data/assignment.db
+      - UPLOAD_DIR=/app/data/uploads
+    volumes:
+      - assignment-data:/app/data
     depends_on:
       rabbitmq:
         condition: service_healthy

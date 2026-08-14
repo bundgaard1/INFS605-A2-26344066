@@ -45,3 +45,12 @@ plugins:
   - plugin: buf.build/grpc/go:v1.3.0
     out: ../course-content-service/gen
     opt: paths=source_relative
+
+  # For Assignment Service
+  - plugin: buf.build/protocolbuffers/go:v1.33.0
+    out: ../assignment-service/gen
+    opt: paths=source_relative
+
+  - plugin: buf.build/grpc/go:v1.3.0
+    out: ../assignment-service/gen
+    opt: paths=source_relative
