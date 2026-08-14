@@ -9,7 +9,6 @@ import (
 	"osbourne.local/frontend/gen/profile"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/internal/domain"
-	"osbourne.local/frontend/internal/render"
 )
 
 type contextKey string
@@ -17,14 +16,12 @@ type contextKey string
 const userKey contextKey = "currentUser"
 
 type Handler struct {
-	renderer *render.Renderer
-	clients  *grpcclient.Clients
+	clients *grpcclient.Clients
 }
 
-func New(renderer *render.Renderer, clients *grpcclient.Clients) *Handler {
+func New(clients *grpcclient.Clients) *Handler {
 	return &Handler{
-		renderer: renderer,
-		clients:  clients,
+		clients: clients,
 	}
 }
 

@@ -1,0 +1,23 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ NotificationsPage(user domain.User, notifications []domain.Notification) {
+	@Base(user) {
+		<section>
+			<h1>Notifications</h1>
+			<p>Welcome to your notifications page.</p>
+			if len(notifications) > 0 {
+				<ul>
+					for _, n := range notifications {
+						<li>
+							@NotificationItem(n)
+						</li>
+					}
+				</ul>
+			} else {
+				<p>No notifications to display.</p>
+			}
+		</section>
+	}
+}

@@ -1,0 +1,15 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ CourseCard(course domain.Course) {
+	<div class="course-card" id={ "course-" + course.ID }>
+		<h2>{ course.Title } ({ course.Code })</h2>
+		<p>{ course.Description }</p>
+		<p>Credits: { course.Credits }</p>
+		<form hx-post="/api/courses/enroll" hx-target={ "#course-" + course.ID } hx-swap="outerHTML">
+			<input type="hidden" name="course_id" value={ course.ID }/>
+			<button type="submit">Enroll In This Course</button>
+		</form>
+	</div>
+}

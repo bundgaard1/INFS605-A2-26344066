@@ -1,0 +1,48 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ Base(user domain.User) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<title>Osborne.AI Portal</title>
+			<link rel="stylesheet" href="/static/css/style.css"/>
+			<script src="/static/vendor/htmx.min.js"></script>
+		</head>
+		<body>
+			<div class="portal-shell">
+				<header class="top-navbar">
+					<h2>Osborne.AI Portal</h2>
+					<div class="user-badge">{ user.Name } ({ user.Role })</div>
+				</header>
+
+				<nav class="side-navbar">
+					<ul>
+						<li><a href={ "/" }>Dashboard</a></li>
+						<li><a href={ "/profile?id=" + user.ID }>Profile</a></li>
+						<li><a href={ "/notifications?id=" + user.ID }>Notifications</a></li>
+						<li><a href={ "/course-catalog" }>Course Catalog</a></li>
+					</ul>
+				</nav>
+
+				<div class="main-container">
+					<main class="content-canvas">
+						{ children... }
+					</main>
+				</div>
+			</div>
+
+			<div id="toasts"></div>
+
+			<script>
+				document.body.addEventListener('htmx:oobAfterSwap', function (event) {
+					if (event.detail.target && event.detail.target.classList.contains('toast')) {
+						setTimeout(function () { event.detail.target.remove(); }, 3500);
+					}
+				});
+			</script>
+		</body>
+	</html>
+}

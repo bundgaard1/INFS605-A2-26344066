@@ -7,6 +7,7 @@ import (
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
 	"osbourne.local/frontend/gen/notification"
 	"osbourne.local/frontend/internal/domain"
+	"osbourne.local/frontend/internal/view"
 )
 
 func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
@@ -23,27 +24,19 @@ func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 			UserId: currentUser.ID,
 		},
 	)
-
 	if err != nil {
 		http.Error(w, "Could not fetch the user's enrollments", http.StatusBadGateway)
 		log.Printf("gRPC call ListEnrolledCourses failed: %v", err)
 		return
 	}
 
-	enrolledCourses := make([]domain.Course, 0, len(res.GetEnrolledCourses()))
+	courses := make([]domain.Course, 0, len(res.GetEnrolledCourses()))
 	for _, c := range res.GetEnrolledCourses() {
-		enrolledCourses = append(enrolledCourses, toDomainCourse(c))
-	}
-
-	data := domain.PageData{
-		User: currentUser,
-		Data: map[string]any{
-			"EnrolledCourses": enrolledCourses,
-		},
+		courses = append(courses, toDomainCourse(c))
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.renderer.Render(w, "dashboard", data); err != nil {
+	if err := view.DashboardPage(currentUser, courses).Render(r.Context(), w); err != nil {
 		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -51,13 +44,8 @@ func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HandleProfile(w http.ResponseWriter, r *http.Request) {
 	currentUser := UserFromContext(r.Context())
 
-	pageData := domain.PageData{
-		User: currentUser,
-		Data: currentUser,
-	}
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.renderer.Render(w, "profile", pageData); err != nil {
+	if err := view.ProfilePage(currentUser).Render(r.Context(), w); err != nil {
 		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -75,20 +63,13 @@ func (h *Handler) HandleNotifications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainNotifications := make([]domain.Notification, 0, len(res.GetNotifications()))
+	notifications := make([]domain.Notification, 0, len(res.GetNotifications()))
 	for _, n := range res.GetNotifications() {
-		domainNotifications = append(domainNotifications, toDomainNotification(n))
-	}
-
-	pageData := domain.PageData{
-		User: user,
-		Data: map[string]any{
-			"Notifications": domainNotifications,
-		},
+		notifications = append(notifications, toDomainNotification(n))
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.renderer.Render(w, "notifications", pageData); err != nil {
+	if err := view.NotificationsPage(user, notifications).Render(r.Context(), w); err != nil {
 		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -109,20 +90,13 @@ func (h *Handler) HandleCourseCatalog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	domainCourses := make([]domain.Course, 0, len(res.GetCourses()))
+	courses := make([]domain.Course, 0, len(res.GetCourses()))
 	for _, course := range res.GetCourses() {
-		domainCourses = append(domainCourses, toDomainCourse(course))
-	}
-
-	pageData := domain.PageData{
-		User: user,
-		Data: map[string]any{
-			"Courses": domainCourses,
-		},
+		courses = append(courses, toDomainCourse(course))
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.renderer.Render(w, "course-catalog", pageData); err != nil {
+	if err := view.CatalogPage(user, courses).Render(r.Context(), w); err != nil {
 		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -141,17 +115,8 @@ func (h *Handler) HandleCoursePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	course := toDomainCourse(res.GetCourse())
-
-	pageData := domain.PageData{
-		User: user,
-		Data: map[string]any{
-			"Course": course,
-		},
-	}
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.renderer.Render(w, "course-page", pageData); err != nil {
+	if err := view.CoursePage(user, toDomainCourse(res.GetCourse())).Render(r.Context(), w); err != nil {
 		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
 	}
 }

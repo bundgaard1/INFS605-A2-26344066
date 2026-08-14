@@ -1,0 +1,14 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ CoursePage(user domain.User, course domain.Course) {
+	@Base(user) {
+		<section>
+			<h1>{ course.Title }</h1>
+			<p><strong>Code:</strong> { course.Code }</p>
+			<p><strong>Description:</strong> { course.Description }</p>
+			<p><strong>Credits:</strong> { course.Credits }</p>
+		</section>
+	}
+}

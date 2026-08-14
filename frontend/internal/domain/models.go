@@ -24,8 +24,3 @@ type Course struct {
 	Description string
 	Credits     int
 }
-
-type PageData struct {
-	User User
-	Data any
-}

@@ -3,13 +3,11 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/internal/handler"
-	"osbourne.local/frontend/internal/render"
 	"osbourne.local/frontend/ui"
 )
 
@@ -40,13 +38,7 @@ func NewApp(cfg Config) (*App, error) {
 		return nil, err
 	}
 
-	renderer, err := render.New(ui.Files)
-	if err != nil {
-		clients.Close()
-		return nil, fmt.Errorf("failed to create renderer: %w", err)
-	}
-
-	h := handler.New(renderer, clients)
+	h := handler.New(clients)
 	mux := http.NewServeMux()
 	h.RegisterRoutes(mux, ui.Files)
 

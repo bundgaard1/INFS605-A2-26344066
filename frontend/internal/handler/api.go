@@ -1,40 +1,57 @@
 package handler
 
 import (
-	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/a-h/templ"
+
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
+	"osbourne.local/frontend/internal/view"
 )
 
 func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
-	// 1. Read HTTP request from JS/HTMX
-	var req struct {
-		CourseID string `json:"course_id"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	courseID := r.FormValue("course_id")
+	if courseID == "" {
+		http.Error(w, "Missing course_id", http.StatusBadRequest)
 		return
 	}
 
-	// 2. Get the authenticated user (e.g. from session/JWT cookie)
 	userID := UserFromContext(r.Context()).ID
 
-	// 3. Call the gRPC service internally in Go
-	resp, err := h.clients.CourseCatalogue.Client.EnrollUser(r.Context(),
-		&coursecatalogue.EnrollUserRequest{
-			UserId:   userID,
-			CourseId: req.CourseID,
-		})
+	fmt.Println("Trying to enroll user ", userID, " in course ", courseID)
 
-	if err != nil {
-		http.Error(w, "Could not complete enrollment", http.StatusInternalServerError)
-		return
+	courseRes, courseErr := h.clients.CourseCatalogue.Client.GetCourse(
+		r.Context(),
+		&coursecatalogue.GetCourseRequest{CourseId: courseID},
+	)
+	if courseErr != nil {
+		log.Printf("gRPC call GetCourse failed: %v", courseErr)
 	}
 
-	// 4. Send clean HTTP/JSON back to the browser
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
-		"success": resp.GetSuccess(),
-	})
+	_, enrollErr := h.clients.CourseCatalogue.Client.EnrollUser(r.Context(),
+		&coursecatalogue.EnrollUserRequest{
+			UserId:   userID,
+			CourseId: courseID,
+		})
+
+	components := make([]templ.Component, 0, 2)
+	if courseErr == nil {
+		components = append(components, view.CourseCard(toDomainCourse(courseRes.GetCourse())))
+	}
+
+	if enrollErr != nil {
+		log.Printf("gRPC call EnrollUser failed: %v", enrollErr)
+		components = append(components, view.Toast("Could not complete enrollment", "error"))
+	} else if courseErr == nil {
+		components = append(components, view.Toast("Enrolled in "+courseRes.GetCourse().GetTitle(), "success"))
+	} else {
+		components = append(components, view.Toast("Enrolled successfully", "success"))
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := templ.Join(components...).Render(r.Context(), w); err != nil {
+		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
+	}
 }

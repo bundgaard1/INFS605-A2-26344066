@@ -32,6 +32,12 @@
 .buf/
 
 # ==========================================
+# Templ (Optional)
+# ==========================================
+# Force everyone to run `make generate` locally
+**/*_templ.go
+
+# ==========================================
 # Environment Variables & Secrets
 # ==========================================
 # Sensitive information and local configurations

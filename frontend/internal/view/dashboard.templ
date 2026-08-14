@@ -1,0 +1,27 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ DashboardPage(user domain.User, courses []domain.Course) {
+	@Base(user) {
+		<section>
+			<p>Welcome to the portal dashboard.</p>
+			<p>Here you can find information about your courses, assignments, and other relevant details.</p>
+
+			<h1>Your Courses</h1>
+			if len(courses) > 0 {
+				<ul>
+					for _, c := range courses {
+						<li>
+							<a href={ "/courses/" + c.ID }>
+								<h2>{ c.Title } ({ c.Code })</h2>
+							</a>
+						</li>
+					}
+				</ul>
+			} else {
+				<p>You are not enrolled in any courses yet.</p>
+			}
+		</section>
+	}
+}

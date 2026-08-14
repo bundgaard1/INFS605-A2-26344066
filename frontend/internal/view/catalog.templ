@@ -1,0 +1,23 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ CatalogPage(user domain.User, courses []domain.Course) {
+	@Base(user) {
+		<section>
+			<h1>Course Catalog</h1>
+			<p>Welcome to your course catalog.</p>
+			if len(courses) > 0 {
+				<ul>
+					for _, c := range courses {
+						<li>
+							@CourseCard(c)
+						</li>
+					}
+				</ul>
+			} else {
+				<p>No courses to display.</p>
+			}
+		</section>
+	}
+}

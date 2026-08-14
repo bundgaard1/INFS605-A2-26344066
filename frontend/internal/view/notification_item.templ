@@ -1,0 +1,13 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+templ NotificationItem(n domain.Notification) {
+	<a href={ n.Link }>
+		if !n.Read {
+			<p class="new-badge">(New)</p>
+		}
+		<strong>{ n.Title }</strong> ({ n.Timestamp.Format("02-01-2006 15:04") })
+		<p>{ n.Message }</p>
+	</a>
+}
