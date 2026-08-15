@@ -1,15 +1,17 @@
 package view
 
-import "osbourne.local/frontend/internal/domain"
+type ProfilePageData struct {
+	PageData
+}
 
-templ ProfilePage(user domain.User) {
-	@Base(user) {
+templ ProfilePage(data ProfilePageData) {
+	@Base(data.User) {
 		<section>
 			<h1>Your Profile</h1>
 			<p>Welcome to your profile page.</p>
-			<p>ID: { user.ID }</p>
-			<p>Name: { user.Name }</p>
-			<p>Role: { user.Role }</p>
+			<p>ID: { data.User.ID }</p>
+			<p>Name: { data.User.Name }</p>
+			<p>Role: { data.User.Role }</p>
 		</section>
 	}
 }

@@ -2,13 +2,31 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
-templ CoursePage(user domain.User, course domain.Course) {
-	@Base(user) {
+
+type CoursePageData struct {
+	PageData
+	Course  domain.Course
+	Modules []domain.Module
+}
+
+templ CoursePage(data CoursePageData) {
+	@Base(data.User) {
 		<section>
-			<h1>{ course.Title }</h1>
-			<p><strong>Code:</strong> { course.Code }</p>
-			<p><strong>Description:</strong> { course.Description }</p>
-			<p><strong>Credits:</strong> { course.Credits }</p>
+			<h1>{ data.Course.Title }</h1>
+			<p><strong>Code:</strong> { data.Course.Code }</p>
+			<p><strong>Description:</strong> { data.Course.Description }</p>
+			<p><strong>Credits:</strong> { data.Course.Credits }</p>
+		</section>
+		<section>
+			<h2>Modules</h2>
+			<ul>
+				for _, module := range data.Modules {
+					<li>
+						<h3>{ module.Title }</h3>
+						<p>{ module.Text }</p>
+					</li>
+				}
+			</ul>
 		</section>
 	}
 }

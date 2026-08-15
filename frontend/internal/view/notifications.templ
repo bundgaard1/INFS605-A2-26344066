@@ -2,14 +2,19 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
-templ NotificationsPage(user domain.User, notifications []domain.Notification) {
-	@Base(user) {
+type NotificationsPageData struct {
+	PageData
+	Notifications []domain.Notification
+}
+
+templ NotificationsPage(data NotificationsPageData) {
+	@Base(data.User) {
 		<section>
 			<h1>Notifications</h1>
 			<p>Welcome to your notifications page.</p>
-			if len(notifications) > 0 {
+			if len(data.Notifications) > 0 {
 				<ul>
-					for _, n := range notifications {
+					for _, n := range data.Notifications {
 						<li>
 							@NotificationItem(n)
 						</li>

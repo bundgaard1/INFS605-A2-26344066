@@ -2,6 +2,12 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
+// PageData carries the data shared by every page shell (the layout rendered
+// by Base). Page-level components embed it.
+type PageData struct {
+	User domain.User
+}
+
 var toastOnce = templ.NewOnceHandle()
 
 templ Base(user domain.User) {

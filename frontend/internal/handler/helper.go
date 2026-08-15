@@ -2,6 +2,7 @@ package handler
 
 import (
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
+	coursecontent "osbourne.local/frontend/gen/course-content"
 	"osbourne.local/frontend/gen/notification"
 	"osbourne.local/frontend/internal/domain"
 )
@@ -46,6 +47,19 @@ func toDomainNotifications(notifications []*notification.Notification) []domain.
 	result := make([]domain.Notification, 0, len(notifications))
 	for _, n := range notifications {
 		result = append(result, toDomainNotification(n))
+	}
+	return result
+}
+
+func toDomainModules(modules []*coursecontent.Module) []domain.Module {
+	result := make([]domain.Module, 0, len(modules))
+	for _, m := range modules {
+		result = append(result, domain.Module{
+			ID:       m.GetId(),
+			CourseID: m.GetCourseId(),
+			Title:    m.GetTitle(),
+			Text:     m.GetText(),
+		})
 	}
 	return result
 }

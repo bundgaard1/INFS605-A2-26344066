@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
+	coursecontent "osbourne.local/frontend/gen/course-content"
 	grpcclient "osbourne.local/frontend/internal/clients/grpc"
 	"osbourne.local/frontend/ui"
 )
@@ -64,6 +65,20 @@ func (f *fakeCatalogueService) ListEnrolledCourses(context.Context, *coursecatal
 	return &coursecatalogue.ListEnrolledCoursesResponse{}, nil
 }
 
+type fakeContentService struct {
+	coursecontent.UnimplementedCourseContentServiceServer
+}
+
+func (f *fakeContentService) ListModulesByCourseID(_ context.Context, req *coursecontent.ListModulesByCourseIDRequest) (*coursecontent.ListModulesByCourseIDResponse, error) {
+	if req.GetCourseId() == "nope" {
+		return &coursecontent.ListModulesByCourseIDResponse{}, nil
+	}
+	return &coursecontent.ListModulesByCourseIDResponse{Modules: []*coursecontent.Module{
+		{Id: "m1", CourseId: req.GetCourseId(), Title: "Module 1", Text: "First module content"},
+		{Id: "m2", CourseId: req.GetCourseId(), Title: "Module 2", Text: "Second module content"},
+	}}, nil
+}
+
 func newTestServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
@@ -76,7 +91,16 @@ func newTestServer(t *testing.T) *httptest.Server {
 	go srv.Serve(lis)
 	t.Cleanup(srv.Stop)
 
-	clients, err := grpcclient.Dial("unused", "unused", lis.Addr().String(), "unused", "unused")
+	contentLis, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("content listen: %v", err)
+	}
+	contentSrv := grpc.NewServer()
+	coursecontent.RegisterCourseContentServiceServer(contentSrv, &fakeContentService{})
+	go contentSrv.Serve(contentLis)
+	t.Cleanup(contentSrv.Stop)
+
+	clients, err := grpcclient.Dial("unused", "unused", lis.Addr().String(), contentLis.Addr().String(), "unused")
 	if err != nil {
 		t.Fatalf("dial: %v", err)
 	}
@@ -146,6 +170,12 @@ func TestCoursePageParamRoute(t *testing.T) {
 	}
 	if !strings.Contains(string(body), "Intro to CS") {
 		t.Errorf("course page missing course data (param not routed): %s", body)
+	}
+
+	for _, want := range []string{"Module 1", "First module content", "Module 2", "Second module content"} {
+		if !strings.Contains(string(body), want) {
+			t.Errorf("course page missing content module %q: %s", want, body)
+		}
 	}
 }
 

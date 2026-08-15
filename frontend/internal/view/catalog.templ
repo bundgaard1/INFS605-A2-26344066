@@ -2,14 +2,19 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
-templ CatalogPage(user domain.User, courses []domain.Course) {
-	@Base(user) {
+type CatalogPageData struct {
+	PageData
+	Courses []domain.Course
+}
+
+templ CatalogPage(data CatalogPageData) {
+	@Base(data.User) {
 		<section>
 			<h1>Course Catalog</h1>
 			<p>Welcome to your course catalog.</p>
-			if len(courses) > 0 {
+			if len(data.Courses) > 0 {
 				<ul>
-					for _, c := range courses {
+					for _, c := range data.Courses {
 						<li>
 							@CourseCard(c)
 						</li>

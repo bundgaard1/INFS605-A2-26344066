@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
+	coursecontent "osbourne.local/frontend/gen/course-content"
 	"osbourne.local/frontend/gen/notification"
 	"osbourne.local/frontend/internal/view"
 )
@@ -24,13 +25,18 @@ func (h *Handler) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderPage(w, r, view.DashboardPage(currentUser, toDomainCourses(res.GetEnrolledCourses())))
+	renderPage(w, r, view.DashboardPage(view.DashboardPageData{
+		PageData: view.PageData{User: currentUser},
+		Courses:  toDomainCourses(res.GetEnrolledCourses()),
+	}))
 
 }
 
 func (h *Handler) HandleProfile(w http.ResponseWriter, r *http.Request) {
 	currentUser := UserFromContext(r.Context())
-	renderPage(w, r, view.ProfilePage(currentUser))
+	renderPage(w, r, view.ProfilePage(view.ProfilePageData{
+		PageData: view.PageData{User: currentUser},
+	}))
 }
 
 func (h *Handler) HandleNotifications(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +51,10 @@ func (h *Handler) HandleNotifications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderPage(w, r, view.NotificationsPage(user, toDomainNotifications(res.GetNotifications())))
+	renderPage(w, r, view.NotificationsPage(view.NotificationsPageData{
+		PageData:      view.PageData{User: user},
+		Notifications: toDomainNotifications(res.GetNotifications()),
+	}))
 }
 
 func (h *Handler) HandleCourseCatalog(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +72,10 @@ func (h *Handler) HandleCourseCatalog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderPage(w, r, view.CatalogPage(user, toDomainCourses(res.GetCourses())))
+	renderPage(w, r, view.CatalogPage(view.CatalogPageData{
+		PageData: view.PageData{User: user},
+		Courses:  toDomainCourses(res.GetCourses()),
+	}))
 }
 
 func (h *Handler) HandleCoursePage(w http.ResponseWriter, r *http.Request) {
@@ -74,10 +86,29 @@ func (h *Handler) HandleCoursePage(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		&coursecatalogue.GetCourseRequest{CourseId: courseID},
 	)
+
 	if err != nil {
 		fetchError(w, "Could not fetch course details", err)
 		return
 	}
 
-	renderPage(w, r, view.CoursePage(user, toDomainCourse(res.GetCourse())))
+	res2, err := h.clients.CourseContent.Client.ListModulesByCourseID(
+		r.Context(),
+		&coursecontent.ListModulesByCourseIDRequest{CourseId: courseID},
+	)
+
+	if err != nil {
+		fetchError(w, "Could not fetch course modules", err)
+		return
+	}
+
+	modules := toDomainModules(res2.GetModules())
+
+	coursePageData := view.CoursePageData{
+		PageData: view.PageData{User: user},
+		Course:   toDomainCourse(res.GetCourse()),
+		Modules:  modules,
+	}
+
+	renderPage(w, r, view.CoursePage(coursePageData))
 }

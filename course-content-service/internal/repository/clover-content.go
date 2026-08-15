@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	c "github.com/ostafen/clover/v2"
@@ -16,20 +17,16 @@ type CloverContentRepository struct {
 }
 
 func NewCloverContentRepository(db *c.DB, cn string) *CloverContentRepository {
-	// Create collection if it doesn't exist
-	if ok, err := db.HasCollection(cn); !ok {
-		if err != nil {
-			panic(fmt.Sprintf("Could not check collection: %v", err))
-		}
-		if err := db.CreateCollection(cn); err != nil {
-			panic(fmt.Sprintf("Could not create collection: %v", err))
-		}
+	// CreateCollection doubles as the existence check; ErrCollectionExist
+	// means the collection already exists, which is fine.
+	if err := db.CreateCollection(cn); err != nil && !errors.Is(err, c.ErrCollectionExist) {
+		panic(fmt.Sprintf("Could not create collection: %v", err))
 	}
 	return &CloverContentRepository{db: db, collectionName: cn}
 }
 
 func (r *CloverContentRepository) ListModules(ctx context.Context, courseID string) ([]*domain.Module, error) {
-	results, err := r.db.FindAll(query.NewQuery(r.collectionName).Where(query.Field("course_id").Eq(courseID)))
+	results, err := r.db.FindAll(query.NewQuery(r.collectionName).Where(query.Field("courseId").Eq(courseID)))
 	if err != nil {
 		return nil, err
 	}

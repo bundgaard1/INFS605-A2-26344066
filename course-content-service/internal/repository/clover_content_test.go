@@ -87,6 +87,36 @@ func TestCloverContentRepository_CreateAndGetModule(t *testing.T) {
 	// }
 }
 
+func TestCloverContentRepository_ListModulesByCourseID(t *testing.T) {
+	db, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	repo := repository.NewCloverContentRepository(db, "modules-test")
+	ctx := context.Background()
+
+	modules := []*domain.Module{
+		{ID: "1", CourseID: "course-1", Title: "Module One", Text: "First module"},
+		{ID: "2", CourseID: "course-1", Title: "Module Two", Text: "Second module"},
+		{ID: "3", CourseID: "course-2", Title: "Other Course", Text: "Unrelated"},
+	}
+	for _, m := range modules {
+		if err := repo.CreateModule(ctx, m); err != nil {
+			t.Fatalf("failed to create module: %v", err)
+		}
+	}
+
+	got, err := repo.ListModules(ctx, "course-1")
+	if err != nil {
+		t.Fatalf("expected no error on list, got %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("expected 2 modules for course-1, got %d", len(got))
+	}
+	if got[0].CourseID != "course-1" || got[1].CourseID != "course-1" {
+		t.Errorf("returned modules do not belong to course-1: %+v", got)
+	}
+}
+
 func TestCloverContentRepository_UpdateAndDeleteModule(t *testing.T) {
 	db, cleanup := setupTestDB(t)
 	defer cleanup()

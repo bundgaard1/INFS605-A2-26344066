@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 
 	c "github.com/ostafen/clover/v2"
@@ -9,7 +10,6 @@ import (
 )
 
 func NewCloverDB(dbDir string) (*c.DB, error) {
-
 	db, err := c.Open(dbDir)
 	if err != nil {
 		return nil, err
@@ -19,14 +19,11 @@ func NewCloverDB(dbDir string) (*c.DB, error) {
 }
 
 func SeedCloverData(db *c.DB) error {
-	if ok, err := db.HasCollection("modules"); ok {
-		return nil
-	} else if err != nil {
-		return fmt.Errorf("Could not check collection: %w", err)
-	}
-
 	err := db.CreateCollection("modules")
 	if err != nil {
+		if errors.Is(err, c.ErrCollectionExist) {
+			return nil
+		}
 		return fmt.Errorf("Could not create collection: %w", err)
 	}
 
