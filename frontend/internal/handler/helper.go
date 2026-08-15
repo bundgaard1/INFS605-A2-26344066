@@ -3,6 +3,8 @@ package handler
 import (
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
 	coursecontent "osbourne.local/frontend/gen/course-content"
+
+	"osbourne.local/frontend/gen/assignment"
 	"osbourne.local/frontend/gen/notification"
 	"osbourne.local/frontend/internal/domain"
 )
@@ -54,12 +56,42 @@ func toDomainNotifications(notifications []*notification.Notification) []domain.
 func toDomainModules(modules []*coursecontent.Module) []domain.Module {
 	result := make([]domain.Module, 0, len(modules))
 	for _, m := range modules {
-		result = append(result, domain.Module{
-			ID:       m.GetId(),
-			CourseID: m.GetCourseId(),
-			Title:    m.GetTitle(),
-			Text:     m.GetText(),
-		})
+		result = append(result, toDomainModule(m))
 	}
 	return result
+}
+
+func toDomainModule(m *coursecontent.Module) domain.Module {
+	if m == nil {
+		return domain.Module{}
+	}
+
+	return domain.Module{
+		ID:       m.GetId(),
+		CourseID: m.GetCourseId(),
+		Title:    m.GetTitle(),
+		Text:     m.GetText(),
+	}
+}
+
+func toDomainAssignments(assignments []*assignment.Assignment) []domain.Assignment {
+	result := make([]domain.Assignment, 0, len(assignments))
+	for _, a := range assignments {
+		result = append(result, toDomainAssignment(a))
+	}
+	return result
+}
+
+func toDomainAssignment(a *assignment.Assignment) domain.Assignment {
+	if a == nil {
+		return domain.Assignment{}
+	}
+
+	return domain.Assignment{
+		ID:          a.GetId(),
+		CourseID:    a.GetCourseId(),
+		Title:       a.GetTitle(),
+		Description: a.GetDescription(),
+		DueDate:     a.GetDueDate().AsTime(),
+	}
 }

@@ -24,11 +24,18 @@ type Module struct {
 	Text     string
 }
 
+type Assignment struct {
+	ID          string
+	CourseID    string
+	Title       string
+	Description string
+	DueDate     time.Time
+}
+
 type Course struct {
 	ID          string
 	Code        string
 	Title       string
 	Description string
 	Credits     int
-	Modules     []Module
 }

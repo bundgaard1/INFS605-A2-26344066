@@ -42,6 +42,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not connect to database: %v", err)
 	}
+	err = database.SeedGORMData(db)
+	if err != nil {
+		log.Fatalf("Could not seed database: %v", err)
+	}
 
 	fileStore, err := repository.NewLocalFileStorage(uploadDir)
 	if err != nil {

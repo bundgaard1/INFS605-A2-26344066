@@ -1,0 +1,22 @@
+package view
+
+import "osbourne.local/frontend/internal/domain"
+
+
+type AssignmentPageData struct {
+    PageData
+    Assignment domain.Assignment
+}
+
+templ AssignmentPage(data AssignmentPageData) {
+    @Base(data.User) {
+        <section>
+            <h1>{ data.Assignment.Title }</h1>
+            <p><strong>Description:</strong> { data.Assignment.Description }</p>
+            <p><strong>Due Date:</strong> { data.Assignment.DueDate.Format("2006-01-02 15:04:05") }</p>
+        </section>
+        <section>
+            <h2>Submit here</h2>
+        </section>
+    }
+}

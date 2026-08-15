@@ -68,61 +68,59 @@ The plan continues to be built around a **Vertical Slice strategy**: We complete
 
 ## Phase 3: Core Domain Expansion
 
-### [ ] Step 3.2: Course Content Service (Service #4 - NoSQL / CloverDB)
+### [x] Step 3.2: Course Content Service (Service #4 - NoSQL / CloverDB)
 
 > **Note:** Since you have chosen **CloverDB** (embedded NoSQL), the database runs locally in your Go process and stores in `./data/nosql` instead of a MongoDB container.
 
 #### **1. DB & Storage Setup**
 
-* [ ] **CloverDB Initialization:** Create and initialize CloverDB in `internal/repository/clover.go` and create the `"modules"` collection.
-* [ ] **Domain Models:** Define `domain.Module` and `domain.File` with the corresponding `json:"_id"` and `json:"..."` tags.
-* [ ] **Seed Data:** Create a `SeedCloverData(db)` function that inserts test modules and file arrays if the collection is empty.
-* [ ] **Docker Volume:** Verify that `./course-catalogue-service/data:/app/data` is mounted in `docker-compose.yml`, so the NoSQL data survives container restarts.
+* [x] **CloverDB Initialization:** Create and initialize CloverDB in `internal/repository/clover.go` and create the `"modules"` collection.
+* [x] **Domain Models:** Define `domain.Module` and `domain.File` with the corresponding `json:"_id"` and `json:"..."` tags. Not quite, we dont fuck with the clover ids. We have our own `ID` field in the struct, and we use that for lookups. The `_id` is just an internal clover thing.
+* [x] **Seed Data:** Create a `SeedCloverData(db)` function that inserts test modules and file arrays if the collection is empty.
+* [x] **Docker Volume:** Verify that `./course-catalogue-service/data:/app/data` is mounted in `docker-compose.yml`, so the NoSQL data survives container restarts.
 
 #### **2. Service & Repository Layer**
 
-* [ ] **Clover Repository Implementation:**
-* [ ] `GetModulesByCourseID(ctx, courseID)` $\rightarrow$ Runs `query.NewQuery("modules").Where(query.Field("course_id").IsEq(courseID))` and unmarshals to `[]*domain.Module`.
-* [ ] `SaveModule(ctx, module)` $\rightarrow$ Uses `document.NewDocumentOf(module)` and inserts/updates in CloverDB.
+* [z] **Clover Repository Implementation:**
+* [x] `GetModulesByCourseID(ctx, courseID)` $\rightarrow$ Runs `query.NewQuery("modules").Where(query.Field("course_id").IsEq(courseID))` and unmarshals to `[]*domain.Module`.
+* [z] `SaveModule(ctx, module)` $\rightarrow$ Uses `document.NewDocumentOf(module)` and inserts/updates in CloverDB.
 
 
-* [ ] **Service Layer Business Logic:** Create `ContentService` that ties the repository together with any validations (e.g. checking that the course exists via gRPC calls to the SQL part).
+* [z] **Service Layer Business Logic:** Create `ContentService` that ties the repository together with any validations (e.g. checking that the course exists via gRPC calls to the SQL part).
 
 #### **3. gRPC Server Setup**
 
-* [ ] **Proto Specification:** Define `content.proto` with messages such as `Module`, `File`, `GetCourseContentRequest` and `GetCourseContentResponse`.
-* [ ] **gRPC Handler Implementation:** Implement the `GetCourseContent` handler, which calls `ContentService` and maps `domain.Module` and `domain.File` over to Proto structs.
-* [ ] **Server Registration:** Register `ContentServer` in your `main.go`.
+* [z] **Proto Specification:** Define `content.proto` with messages such as `Module`, `File`, `GetCourseContentRequest` and `GetCourseContentResponse`.
+* [z] **gRPC Handler Implementation:** Implement the `GetCourseContent` handler, which calls `ContentService` and maps `domain.Module` and `domain.File` over to Proto structs.
+* [z] **Server Registration:** Register `ContentServer` in your `main.go`.
 
 #### **4. Frontend / BFF Integration & Test**
 
-* [ ] **BFF Client:** Add `ContentClient` to your Go Frontend BFF and configure `COURSE_CONTENT_SERVICE_ADDR`.
-* [ ] **HTTP Handler:** Create the `/courses/{id}/content` endpoint in the frontend.
-* [ ] **Template / UI View:** Render the modules' titles, message texts and file links (`<a href="...">filename.pdf</a>`) in the HTML template.
-* [ ] **Verification:** Open a course in the frontend and confirm that modules and files are fetched in a single read call via gRPC from CloverDB.
+* [z] **BFF Client:** Add `ContentClient` to your Go Frontend BFF and configure `COURSE_CONTENT_SERVICE_ADDR`.
+* [x] **HTTP Handler:** Show the course content on `/courses/{courseID}` by calling `ContentClient.GetCourseContent(ctx, &GetCourseContentRequest{CourseId: courseID})`.
+* [x] **Template / UI View:** Render the modules' titles, message texts.
+* [x] **Verification:** Open a course in the frontend and confirm that modules and files are fetched in a single read call via gRPC from CloverDB.
 
 ---
 
-### [ ] Step 3.3: Assignment & Grading Service (Service #5 - SQL)
+### [x] Step 3.3: Assignment & Grading Service (Service #5 - SQL)
 
 #### **1. Database Setup**
 
-* [ ] **GORM Schema / Migrations:** Create tables for `assignments` (`id`, `course_id`, `title`, `due_date`) and `submissions` (`id`, `assignment_id`, `student_id`, `grade`, `submitted_at`).
-* [ ] **Database Seeding:** Seed a couple of test assignments for existing courses.
+* [x] **GORM Schema / Migrations:** Create tables for `assignments` (`id`, `course_id`, `title`, `due_date`) and `submissions` (`id`, `assignment_id`, `student_id`, `grade`submitted_at`).
+* [x] **Database Seeding:** Seed a couple of test assignments for existing courses.
 
 #### **2. Service & Repository Layer**
 
-* [ ] **Grading Repository:** Implement `CreateSubmission` and `UpdateGrade`.
-* [ ] **Service Layer & Event Triggering:**
+* [x] **Grading Repository:** Implement `CreateSubmission` and `UpdateGrade`.
+* [x] **Service Layer & Event Triggering:**
 * [ ] In `GradeSubmission()` the grade is saved in the SQL database.
 * [ ] As soon as the DB update succeeds, a `grade.published` event is published on RabbitMQ with `{student_id, course_id, grade}`.
 
-
-
 #### **3. gRPC Server Setup**
 
-* [ ] **Proto Specification:** Define `grading.proto` with `SubmitAssignment` and `GradeSubmission` RPC calls.
-* [ ] **gRPC Handler:** Create the server implementation and hook it onto the gRPC port (e.g. `:50054`).
+* [x] **Proto Specification:** Define `grading.proto` with `SubmitAssignment` and `GradeSubmission` RPC calls.
+* [x] **gRPC Handler:** Create the server implementation and hook it onto the gRPC port (e.g. `:50054`).
 
 #### **4. Frontend / BFF Integration & Test**
 
@@ -244,3 +242,13 @@ docker compose up -d --scale profile-service=3 --scale notification-service=2
 hey -n 200 -c 20 http://localhost/api/v1/courses
 
 ```
+
+## Extra add ons.
+
+### Content Service (CloverDB) - Additional Features
+
+- Add list of files to modules!
+
+### Assignment Service (SQL) - Additional Features
+
+- Move the grade into the submission!, I just complicates things to have a separate table for grades. The submission table can have a grade column, and we can just update that when the instructor grades the submission.

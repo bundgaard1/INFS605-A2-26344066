@@ -59,6 +59,20 @@ func (s *AssignmentServer) GetCourseAssignments(ctx context.Context, req *assign
 	}, nil
 }
 
+func (s *AssignmentServer) GetAssignment(ctx context.Context, req *assignmentpb.GetAssignmentRequest) (*assignmentpb.GetAssignmentResponse, error) {
+	assignment, err := s.svc.GetAssignment(ctx, req.GetAssignmentId())
+	if err != nil {
+		return nil, err
+	}
+	if assignment == nil {
+		return nil, status.Error(codes.NotFound, "assignment not found")
+	}
+
+	return &assignmentpb.GetAssignmentResponse{
+		Assignment: toProtoAssignment(assignment),
+	}, nil
+}
+
 func (s *AssignmentServer) UploadSubmission(stream assignmentpb.AssignmentService_UploadSubmissionServer) error {
 	first, err := stream.Recv()
 	if err != nil {

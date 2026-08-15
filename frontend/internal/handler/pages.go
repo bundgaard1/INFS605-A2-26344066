@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"osbourne.local/frontend/gen/assignment"
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
 	coursecontent "osbourne.local/frontend/gen/course-content"
 	"osbourne.local/frontend/gen/notification"
@@ -101,14 +102,46 @@ func (h *Handler) HandleCoursePage(w http.ResponseWriter, r *http.Request) {
 		fetchError(w, "Could not fetch course modules", err)
 		return
 	}
-
 	modules := toDomainModules(res2.GetModules())
 
+	res3, err := h.clients.Assignment.Client.GetCourseAssignments(
+		r.Context(),
+		&assignment.GetCourseAssignmentsRequest{CourseId: courseID},
+	)
+	if err != nil {
+		fetchError(w, "Could not fetch course assignments", err)
+		return
+	}
+	assignments := toDomainAssignments(res3.GetAssignments())
+
 	coursePageData := view.CoursePageData{
-		PageData: view.PageData{User: user},
-		Course:   toDomainCourse(res.GetCourse()),
-		Modules:  modules,
+		PageData:    view.PageData{User: user},
+		Course:      toDomainCourse(res.GetCourse()),
+		Modules:     modules,
+		Assignemnts: assignments,
 	}
 
 	renderPage(w, r, view.CoursePage(coursePageData))
+}
+
+func (h *Handler) HandleAssignmentPage(w http.ResponseWriter, r *http.Request) {
+	user := UserFromContext(r.Context())
+	// courseID := chi.URLParam(r, "courseID")
+	assignmentID := chi.URLParam(r, "assignmentID")
+
+	res, err := h.clients.Assignment.Client.GetAssignment(
+		r.Context(),
+		&assignment.GetAssignmentRequest{
+			AssignmentId: assignmentID,
+		},
+	)
+	if err != nil {
+		fetchError(w, "Could not fetch assignment details", err)
+		return
+	}
+
+	renderPage(w, r, view.AssignmentPage(view.AssignmentPageData{
+		PageData:   view.PageData{User: user},
+		Assignment: toDomainAssignment(res.GetAssignment()),
+	}))
 }

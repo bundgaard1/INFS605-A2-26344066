@@ -7,6 +7,7 @@ type CoursePageData struct {
 	PageData
 	Course  domain.Course
 	Modules []domain.Module
+	Assignemnts []domain.Assignment
 }
 
 templ CoursePage(data CoursePageData) {
@@ -24,6 +25,17 @@ templ CoursePage(data CoursePageData) {
 					<li>
 						<h3>{ module.Title }</h3>
 						<p>{ module.Text }</p>
+					</li>
+				}
+			</ul>
+		</section>
+		<section>
+			<h2>Assignments</h2>
+			<ul>
+				for _, assignment := range data.Assignemnts {
+					<li>
+						<strong>{ assignment.Title }</strong> - Due Date: { assignment.DueDate.Format("Jan 2, 2006, 3:04 PM") } <a href={"/courses/" + data.Course.ID + "/assignments/" + assignment.ID}>View Details</a>
+					
 					</li>
 				}
 			</ul>
