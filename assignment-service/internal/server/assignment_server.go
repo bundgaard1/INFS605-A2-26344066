@@ -43,17 +43,19 @@ func (s *AssignmentServer) CreateAssignment(ctx context.Context, req *assignment
 	}, nil
 }
 
-func (s *AssignmentServer) GetAssignment(ctx context.Context, req *assignmentpb.GetAssignmentRequest) (*assignmentpb.GetAssignmentResponse, error) {
-	assignment, err := s.svc.GetAssignment(ctx, req.GetAssignmentId())
+func (s *AssignmentServer) GetCourseAssignments(ctx context.Context, req *assignmentpb.GetCourseAssignmentsRequest) (*assignmentpb.GetCourseAssignmentsResponse, error) {
+	assignments, err := s.svc.GetCourseAssignments(ctx, req.GetCourseId())
 	if err != nil {
 		return nil, err
 	}
-	if assignment == nil {
-		return nil, status.Error(codes.NotFound, "assignment not found")
+
+	protoAssignments := make([]*assignmentpb.Assignment, len(assignments))
+	for i, assignment := range assignments {
+		protoAssignments[i] = toProtoAssignment(assignment)
 	}
 
-	return &assignmentpb.GetAssignmentResponse{
-		Assignment: toProtoAssignment(assignment),
+	return &assignmentpb.GetCourseAssignmentsResponse{
+		Assignments: protoAssignments,
 	}, nil
 }
 

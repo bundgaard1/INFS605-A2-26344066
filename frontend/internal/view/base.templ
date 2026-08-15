@@ -2,6 +2,8 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
+var toastOnce = templ.NewOnceHandle()
+
 templ Base(user domain.User) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -9,7 +11,6 @@ templ Base(user domain.User) {
 			<meta charset="UTF-8"/>
 			<title>Osborne.AI Portal</title>
 			<link rel="stylesheet" href="/static/css/style.css"/>
-			<script src="/static/vendor/htmx.min.js"></script>
 		</head>
 		<body>
 			<div class="portal-shell">
@@ -36,13 +37,21 @@ templ Base(user domain.User) {
 
 			<div id="toasts"></div>
 
-			<script>
-				document.body.addEventListener('htmx:oobAfterSwap', function (event) {
-					if (event.detail.target && event.detail.target.classList.contains('toast')) {
-						setTimeout(function () { event.detail.target.remove(); }, 3500);
+			@toastOnce.Once() {
+				<script>
+					function showToast(message, kind) {
+						var toasts = document.getElementById('toasts');
+						if (!toasts) return;
+
+						var toast = document.createElement('div');
+						toast.className = 'toast toast-' + (kind === 'error' ? 'error' : 'success');
+						toast.textContent = message;
+						toasts.appendChild(toast);
+
+						setTimeout(function () { toast.remove(); }, 3500);
 					}
-				});
-			</script>
+				</script>
+			}
 		</body>
 	</html>
 }

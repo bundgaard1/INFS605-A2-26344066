@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -41,7 +42,22 @@ func (f *fakeCatalogueService) EnrollUser(_ context.Context, _ *coursecatalogue.
 }
 
 func (f *fakeCatalogueService) ListCourses(context.Context, *coursecatalogue.ListCoursesRequest) (*coursecatalogue.ListCoursesResponse, error) {
-	return &coursecatalogue.ListCoursesResponse{}, nil
+	return &coursecatalogue.ListCoursesResponse{Courses: []*coursecatalogue.Course{
+		{
+			Id:          "c1",
+			Code:        "CS101",
+			Title:       "Intro to CS",
+			Description: "Basics",
+			Credits:     10,
+		},
+		{
+			Id:          "c2",
+			Code:        "CS102",
+			Title:       "Data Structures",
+			Description: "More basics",
+			Credits:     10,
+		},
+	}}, nil
 }
 
 func (f *fakeCatalogueService) ListEnrolledCourses(context.Context, *coursecatalogue.ListEnrolledCoursesRequest) (*coursecatalogue.ListEnrolledCoursesResponse, error) {
@@ -133,10 +149,10 @@ func TestCoursePageParamRoute(t *testing.T) {
 	}
 }
 
-func TestHtmxStaticServed(t *testing.T) {
+func TestEnrollScriptsInCatalogPage(t *testing.T) {
 	ts := newTestServer(t)
 
-	resp, err := http.Get(ts.URL + "/static/vendor/htmx.min.js")
+	resp, err := http.Get(ts.URL + "/course-catalog")
 	if err != nil {
 		t.Fatalf("GET: %v", err)
 	}
@@ -150,8 +166,26 @@ func TestHtmxStaticServed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read body: %v", err)
 	}
-	if len(body) < 10000 {
-		t.Fatalf("htmx.min.js looks truncated: %d bytes", len(body))
+	html := string(body)
+
+	if strings.Contains(html, "/static/js/app.js") {
+		t.Errorf("catalog page still references app.js")
+	}
+	if strings.Contains(html, "hx-") {
+		t.Errorf("catalog page contains htmx attributes")
+	}
+
+	if got := strings.Count(html, "class=\"course-card\""); got != 2 {
+		t.Errorf("expected 2 course cards, got %d", got)
+	}
+	if got := strings.Count(html, "function showToast(message, kind)"); got != 1 {
+		t.Errorf("showToast script should render exactly once, got %d", got)
+	}
+	if got := strings.Count(html, "addEventListener('submit'"); got != 1 {
+		t.Errorf("enroll submit listener should render exactly once, got %d", got)
+	}
+	if got := strings.Count(html, `/api/courses/enroll`); got != 1 {
+		t.Errorf("enroll endpoint reference should render exactly once, got %d", got)
 	}
 }
 
@@ -173,22 +207,22 @@ func TestHandleEnrollCourseRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read body: %v", err)
 	}
-	html := string(body)
-	t.Logf("response body: %s", html)
+	t.Logf("response body: %s", body)
 
-	if !strings.Contains(html, `id="course-c1"`) {
-		t.Errorf("response missing course card: %s", html)
+	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
+		t.Errorf("expected JSON content type, got %q", resp.Header.Get("Content-Type"))
 	}
-	if !strings.Contains(html, "Enroll In This Course") {
-		t.Errorf("response missing enroll form: %s", html)
+
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		t.Fatalf("response is not valid JSON: %v", err)
 	}
-	if strings.Contains(html, "Enrolled</span>") {
-		t.Errorf("response should not contain enrolled badge: %s", html)
+
+	if payload["success"] != true {
+		t.Errorf("expected success=true, got %v", payload["success"])
 	}
-	if !strings.Contains(html, `hx-swap-oob="beforeend:#toasts"`) {
-		t.Errorf("response missing OOB toast: %s", html)
-	}
-	if !strings.Contains(html, "toast toast-success") {
-		t.Errorf("response missing success toast: %s", html)
+	msg, _ := payload["message"].(string)
+	if !strings.Contains(msg, "Enrolled in") {
+		t.Errorf("expected success message, got %q", msg)
 	}
 }

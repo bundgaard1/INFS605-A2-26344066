@@ -36,7 +36,6 @@ plugins:
     out: ../course-catalogue-service/gen
     opt: paths=source_relative
 
-
     # For Course Content Service
   - plugin: buf.build/protocolbuffers/go:v1.33.0
     out: ../course-content-service/gen

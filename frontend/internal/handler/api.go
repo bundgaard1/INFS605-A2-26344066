@@ -1,19 +1,22 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
-	"github.com/a-h/templ"
-
 	coursecatalogue "osbourne.local/frontend/gen/course-catalogue"
-	"osbourne.local/frontend/internal/view"
 )
+
+type enrollResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
 
 func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 	courseID := r.FormValue("course_id")
 	if courseID == "" {
-		http.Error(w, "Missing course_id", http.StatusBadRequest)
+		writeJSON(w, http.StatusBadRequest, enrollResponse{Success: false, Message: "Missing course_id"})
 		return
 	}
 
@@ -23,9 +26,6 @@ func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		&coursecatalogue.GetCourseRequest{CourseId: courseID},
 	)
-	if courseErr != nil {
-		log.Printf("gRPC call GetCourse failed: %v", courseErr)
-	}
 
 	_, enrollErr := h.clients.CourseCatalogue.Client.EnrollUser(r.Context(),
 		&coursecatalogue.EnrollUserRequest{
@@ -33,22 +33,24 @@ func (h *Handler) HandleEnrollCourse(w http.ResponseWriter, r *http.Request) {
 			CourseId: courseID,
 		})
 
-	components := make([]templ.Component, 0, 2)
-	if courseErr == nil {
-		components = append(components, view.CourseCard(toDomainCourse(courseRes.GetCourse())))
-	}
-
 	if enrollErr != nil {
 		log.Printf("gRPC call EnrollUser failed: %v", enrollErr)
-		components = append(components, view.Toast("Could not complete enrollment", "error"))
-	} else if courseErr == nil {
-		components = append(components, view.Toast("Enrolled in "+courseRes.GetCourse().GetTitle(), "success"))
-	} else {
-		components = append(components, view.Toast("Enrolled successfully", "success"))
+		writeJSON(w, grpcToHTTPStatus(enrollErr), enrollResponse{Success: false, Message: "Could not complete enrollment"})
+		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := templ.Join(components...).Render(r.Context(), w); err != nil {
-		http.Error(w, "Render error: "+err.Error(), http.StatusInternalServerError)
+	title := "Enrolled successfully"
+	if courseErr == nil && courseRes.GetCourse() != nil {
+		title = "Enrolled in " + courseRes.GetCourse().GetTitle()
+	}
+
+	writeJSON(w, http.StatusOK, enrollResponse{Success: true, Message: title})
+}
+
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		log.Printf("failed to encode JSON response: %v", err)
 	}
 }

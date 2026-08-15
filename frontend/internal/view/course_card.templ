@@ -2,13 +2,56 @@ package view
 
 import "osbourne.local/frontend/internal/domain"
 
+var enrollOnce = templ.NewOnceHandle()
+
 templ CourseCard(course domain.Course) {
+	@enrollOnce.Once() {
+		<script>
+			document.addEventListener('submit', function (event) {
+				var form = event.target.closest('.enroll-form');
+				if (!form) return;
+
+				event.preventDefault();
+				var courseId = form.getAttribute('data-course-id');
+				if (!courseId) return;
+
+				var button = form.querySelector('button');
+				if (button) button.disabled = true;
+
+				var body = new URLSearchParams();
+				body.set('course_id', courseId);
+
+				fetch('/api/courses/enroll', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: body.toString()
+				})
+					.then(function (resp) {
+						return resp.json().catch(function () { return {}; }).then(function (data) {
+							return { ok: resp.ok, data: data };
+						});
+					})
+					.then(function (result) {
+						if (result.ok && result.data.success) {
+							showToast(result.data.message || 'Enrolled successfully', 'success');
+						} else {
+							if (button) button.disabled = false;
+							showToast(result.data.message || 'Could not complete enrollment', 'error');
+						}
+					})
+					.catch(function () {
+						if (button) button.disabled = false;
+						showToast('Could not complete enrollment', 'error');
+					});
+			});
+		</script>
+	}
+
 	<div class="course-card" id={ "course-" + course.ID }>
 		<h2>{ course.Title } ({ course.Code })</h2>
 		<p>{ course.Description }</p>
 		<p>Credits: { course.Credits }</p>
-		<form hx-post="/api/courses/enroll" hx-target={ "#course-" + course.ID } hx-swap="outerHTML">
-			<input type="hidden" name="course_id" value={ course.ID }/>
+		<form class="enroll-form" data-course-id={ course.ID }>
 			<button type="submit">Enroll In This Course</button>
 		</form>
 	</div>

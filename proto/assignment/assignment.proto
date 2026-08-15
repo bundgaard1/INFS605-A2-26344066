@@ -8,7 +8,7 @@ option go_package = "osbourne.local/assignment-service/gen/assignment;assignment
 
 service AssignmentService {
   rpc CreateAssignment(CreateAssignmentRequest) returns (CreateAssignmentResponse);
-  rpc GetAssignment(GetAssignmentRequest) returns (GetAssignmentResponse);
+  rpc GetCourseAssignments(GetCourseAssignmentsRequest) returns (GetCourseAssignmentsResponse);
   rpc UploadSubmission(stream UploadSubmissionRequest) returns (UploadSubmissionResponse);
 }
 
@@ -31,12 +31,12 @@ message CreateAssignmentResponse {
   Assignment assignment = 1;
 }
 
-message GetAssignmentRequest {
-  string assignment_id = 1;
+message GetCourseAssignmentsRequest {
+  string course_id = 1;
 }
 
-message GetAssignmentResponse {
-  Assignment assignment = 1;
+message GetCourseAssignmentsResponse {
+  repeated Assignment assignments = 1;
 }
 
 message SubmissionMetadata {

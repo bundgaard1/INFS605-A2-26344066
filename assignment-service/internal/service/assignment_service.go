@@ -37,6 +37,16 @@ func (s *AssignmentService) CreateAssignment(ctx context.Context, assignment *do
 	return s.repo.CreateAssignment(ctx, assignment)
 }
 
+func (s *AssignmentService) GetCourseAssignments(ctx context.Context, courseID string) ([]*domain.Assignment, error) {
+	// For simplicity, we assume that the repository has a method to list assignments by course ID.
+	// This method should be implemented in the repository layer.
+	assignments, err := s.repo.GetAssignmentsByCourse(ctx, courseID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch assignments for course %s: %w", courseID, err)
+	}
+	return assignments, nil
+}
+
 func (s *AssignmentService) GetAssignment(ctx context.Context, assignmentID string) (*domain.Assignment, error) {
 	return s.repo.GetAssignment(ctx, assignmentID)
 }
@@ -109,10 +119,21 @@ func (s *AssignmentService) GradeSubmission(ctx context.Context, submissionID st
 		GradedAt:     time.Now(),
 	}
 
-	if err := s.repo.SetGrade(ctx, grade); err != nil {
+	if err := s.repo.CreateGrade(ctx, grade); err != nil {
 		return nil, fmt.Errorf("failed to store grade: %w", err)
 	}
 
+	return grade, nil
+}
+
+func (s *AssignmentService) GetGradeBySubmission(ctx context.Context, submissionID string) (*domain.Grade, error) {
+	grade, err := s.repo.GetGradeBySubmission(ctx, submissionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch grade: %w", err)
+	}
+	if grade == nil {
+		return nil, nil // No grade found for this submission
+	}
 	return grade, nil
 }
 

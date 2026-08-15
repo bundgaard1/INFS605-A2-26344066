@@ -8,9 +8,11 @@ import (
 type AssignmentRepository interface {
 	CreateAssignment(ctx context.Context, assignment *Assignment) error
 	GetAssignment(ctx context.Context, assignmentID string) (*Assignment, error)
+	GetAssignmentsByCourse(ctx context.Context, courseID string) ([]*Assignment, error)
 	CreateSubmission(ctx context.Context, submission *Submission) error
 	ListSubmissionsByAssignment(ctx context.Context, assignmentID string) ([]*Submission, error)
-	SetGrade(ctx context.Context, grade *Grade) error
+	CreateGrade(ctx context.Context, grade *Grade) error
+	GetGradeBySubmission(ctx context.Context, submissionID string) (*Grade, error)
 }
 
 // FileStorage persists the raw bytes of submission files on the local

@@ -30,6 +30,8 @@ func grpcToHTTPStatus(err error) int {
 	switch status.Code(err) {
 	case codes.NotFound:
 		return http.StatusNotFound
+	case codes.AlreadyExists:
+		return http.StatusConflict
 	case codes.PermissionDenied, codes.Unauthenticated:
 		return http.StatusForbidden
 	case codes.Unavailable, codes.DeadlineExceeded:

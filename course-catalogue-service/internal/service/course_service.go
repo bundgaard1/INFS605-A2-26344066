@@ -2,16 +2,18 @@ package service
 
 import (
 	"context"
+	"errors"
+	"time"
 
+	"github.com/google/uuid"
 	"osbourne.local/course-catalogue-service/internal/domain"
-	"osbourne.local/course-catalogue-service/internal/repository"
 )
 
 type CourseService struct {
-	repo repository.CourseCatalogueRepository
+	repo domain.CourseCatalogueRepository
 }
 
-func NewCourseService(repo repository.CourseCatalogueRepository) *CourseService {
+func NewCourseService(repo domain.CourseCatalogueRepository) *CourseService {
 	return &CourseService{repo: repo}
 }
 
@@ -24,7 +26,26 @@ func (s *CourseService) ListCourses(ctx context.Context, page int32, pageSize in
 }
 
 func (s *CourseService) EnrollStudent(ctx context.Context, courseID string, studentID string) error {
-	return s.repo.EnrollStudent(ctx, courseID, studentID)
+
+	courses, err := s.GetEnrolledCoursesByUserID(ctx, studentID)
+	if err != nil {
+		return err
+	}
+
+	for _, course := range courses {
+		if course.ID == courseID {
+			return errors.New("student is already enrolled in this course")
+		}
+	}
+
+	e := &domain.Enrollment{
+		ID:         uuid.NewString(),
+		CourseID:   courseID,
+		UserID:     studentID,
+		EnrolledAt: time.Now(),
+	}
+
+	return s.repo.CreateEnrollment(ctx, e)
 }
 
 func (s *CourseService) GetEnrolledCoursesByUserID(ctx context.Context, userID string) ([]*domain.Course, error) {

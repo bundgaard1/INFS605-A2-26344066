@@ -40,12 +40,7 @@ func (r *GORMCourseCatalogueRepository) ListCourses(ctx context.Context, page in
 	return courses, int32(total), nil
 }
 
-func (r *GORMCourseCatalogueRepository) EnrollStudent(ctx context.Context, courseID string, userID string) error {
-	enrollment := &domain.Enrollment{
-		CourseID: courseID,
-		UserID:   userID,
-	}
-
+func (r *GORMCourseCatalogueRepository) CreateEnrollment(ctx context.Context, enrollment *domain.Enrollment) error {
 	return r.db.WithContext(ctx).Create(enrollment).Error
 }
 

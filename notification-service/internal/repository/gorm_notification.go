@@ -50,13 +50,7 @@ func (r *GORMNotificationRepository) MarkNotificationAsRead(ctx context.Context,
 	return &notificationEntity, nil
 }
 
-func (r *GORMNotificationRepository) CreateNotification(ctx context.Context, userID string, title string, message string, link string) error {
-	notification := domain.Notification{
-		UserID:  userID,
-		Title:   title,
-		Message: message,
-		LinkURL: link,
-	}
+func (r *GORMNotificationRepository) CreateNotification(ctx context.Context, notification *domain.Notification) error {
 
 	err := r.db.WithContext(ctx).Create(&notification).Error
 	if err != nil {

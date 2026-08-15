@@ -30,6 +30,14 @@ func (r *GORMAssignmentRepository) GetAssignment(ctx context.Context, assignment
 	return &assignment, nil
 }
 
+func (r *GORMAssignmentRepository) GetAssignmentsByCourse(ctx context.Context, courseID string) ([]*domain.Assignment, error) {
+	var assignments []*domain.Assignment
+	if err := r.db.WithContext(ctx).Where("course_id = ?", courseID).Find(&assignments).Error; err != nil {
+		return nil, err
+	}
+	return assignments, nil
+}
+
 func (r *GORMAssignmentRepository) CreateSubmission(ctx context.Context, submission *domain.Submission) error {
 	return r.db.WithContext(ctx).Create(submission).Error
 }
@@ -45,6 +53,17 @@ func (r *GORMAssignmentRepository) ListSubmissionsByAssignment(ctx context.Conte
 	return submissions, nil
 }
 
-func (r *GORMAssignmentRepository) SetGrade(ctx context.Context, grade *domain.Grade) error {
+func (r *GORMAssignmentRepository) CreateGrade(ctx context.Context, grade *domain.Grade) error {
 	return r.db.WithContext(ctx).Create(grade).Error
+}
+
+func (r *GORMAssignmentRepository) GetGradeBySubmission(ctx context.Context, submissionID string) (*domain.Grade, error) {
+	var grade domain.Grade
+	if err := r.db.WithContext(ctx).First(&grade, "submission_id = ?", submissionID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &grade, nil
 }

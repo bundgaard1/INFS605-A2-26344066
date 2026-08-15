@@ -2,16 +2,17 @@ package service
 
 import (
 	"context"
+	"time"
 
+	"github.com/google/uuid"
 	"osbourne.local/notification-service/internal/domain"
-	"osbourne.local/notification-service/internal/repository"
 )
 
 type NotificationService struct {
-	repo repository.NotificationRepository
+	repo domain.NotificationRepository
 }
 
-func NewNotificationService(repo repository.NotificationRepository) *NotificationService {
+func NewNotificationService(repo domain.NotificationRepository) *NotificationService {
 	return &NotificationService{repo: repo}
 }
 
@@ -24,6 +25,14 @@ func (s *NotificationService) MarkNotificationAsRead(ctx context.Context, notifi
 }
 
 func (s *NotificationService) CreateNotification(ctx context.Context, userID string, title string, message string, link string) error {
-
-	return s.repo.CreateNotification(ctx, userID, title, message, link)
+	n := &domain.Notification{
+		ID:        uuid.NewString(),
+		UserID:    userID,
+		Title:     title,
+		Message:   message,
+		LinkURL:   link,
+		IsRead:    false,
+		CreatedAt: time.Now(),
+	}
+	return s.repo.CreateNotification(ctx, n)
 }

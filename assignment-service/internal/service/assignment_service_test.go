@@ -33,6 +33,16 @@ func (f *fakeRepository) GetAssignment(ctx context.Context, assignmentID string)
 	return f.assignments[assignmentID], nil
 }
 
+func (f *fakeRepository) GetAssignmentsByCourse(ctx context.Context, courseID string) ([]*domain.Assignment, error) {
+	var out []*domain.Assignment
+	for _, a := range f.assignments {
+		if a.CourseID == courseID {
+			out = append(out, a)
+		}
+	}
+	return out, nil
+}
+
 func (f *fakeRepository) CreateSubmission(ctx context.Context, submission *domain.Submission) error {
 	if f.failCreate {
 		return errors.New("db down")
@@ -51,9 +61,16 @@ func (f *fakeRepository) ListSubmissionsByAssignment(ctx context.Context, assign
 	return out, nil
 }
 
-func (f *fakeRepository) SetGrade(ctx context.Context, grade *domain.Grade) error {
+func (f *fakeRepository) CreateGrade(ctx context.Context, grade *domain.Grade) error {
 	f.lastGrade = grade
 	return nil
+}
+
+func (f *fakeRepository) GetGradeBySubmission(ctx context.Context, submissionID string) (*domain.Grade, error) {
+	if f.lastGrade != nil && f.lastGrade.SubmissionID == submissionID {
+		return f.lastGrade, nil
+	}
+	return nil, nil
 }
 
 type fakeStorage struct {
